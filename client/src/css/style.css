@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @font-face {
+  font-family: "JosefineSans";
+  src: url("../fonts/JosefinSansRegular-x3LYV.ttf");
+  font-display: swap;
+} */
+
+@layer base {
+  :root {
+    --color-std: 241 225 228;
+    --color-primary: 112 22 60;
+    --color-accent: 228 87 46;
+    --color-success: 65 69 53;
+    --color-error: 228 38 28;
+  }
+}
+
+@layer {
+  #logout {
+    @apply w-full !bg-red-500 p-2 tracking-widest !border-red-500 !border-2 shadow-md !font-bold;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  /* font-family: "JosefineSans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator {
+  display: flex;
+}
+.htmx-request.htmx-indicator {
+  display: flex;
+}
+
+section img,
+#gallery img {
+  -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  -o-transition: transform 0.3s;
+  transition: transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+}
+
+#gallery img:hover {
+  -webkit-transform: scale(1.1);
+  -ms-transform: scale(1.1);
+  transform: scale(1.1);
+}

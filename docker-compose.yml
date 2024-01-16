@@ -1,0 +1,34 @@
+version: "3.7"
+
+services:
+  rosskery:
+    container_name: rosskery
+    image: rosskery
+    labels:
+      - traefik.http.routers.rosskery.rule=Host(`rosskery.dmz.urx.ink`)
+      - traefik.http.routers.rosskery.entrypoints=web,websecure
+      - traefik.http.routers.rosskery.service=rosskery
+      - traefik.http.services.rosskery.loadbalancer.server.port=8078
+      - traefik.http.routers.rosskery.tls=true
+      - traefik.http.routers.rosskery.tls.certresolver=le
+      - traefik.port=80
+    networks:
+      - rosskerynet
+      - proxy
+    ports:
+      - 8078:8078
+
+networks:
+  proxy:
+    external: true
+  rosskerynet:
+    driver: bridge
+    external: false
+
+volumes:
+  rosskerypgdata:
+    driver: local
+  rosskerypgconf:
+    driver: local
+  rosskerypglog:
+    driver: local

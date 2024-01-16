@@ -1,0 +1,60 @@
+package views
+
+import "github.com/Francesco99975/rosskery/internal/models"
+import "github.com/Francesco99975/rosskery/views/layouts"
+import "strconv"
+
+templ Gallery(site models.Site, images []models.Photo) {
+	@layouts.CoreHTML(site) {
+		<div class="container mx-auto mt-8 min-h-screen backdrop-blur-md">
+			<div class="pswp-gallery grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4" id="gallery">
+				@Photos(images)
+			</div>
+		</div>
+		<script>
+        function initGallery() {
+           const lightbox = new PhotoSwipeLightbox({
+                gallery: '#gallery',
+                children: 'a',
+                pswpModule: PhotoSwipe
+            });
+            lightbox.init();
+        }
+
+        if(document.readyState !== 'loading') {
+					initGallery();
+				}
+
+				document.addEventListener('DOMContentLoaded', function () {
+						initGallery();
+				});
+    </script>
+	}
+}
+
+templ Photos( images []models.Photo) {
+	for index, image := range images {
+		if index < len(images) -1 {
+			<a
+ 				href={ templ.URL("/assets/gallery/" + image.Path) }
+ 				data-pswp-width={ strconv.Itoa(image.Width) }
+ 				data-pswp-height={ strconv.Itoa(image.Height) }
+ 				target="_blank"
+			>
+				<img src={ "/assets/gallery/" + image.Path } alt={ "IMG" + strconv.Itoa(index) }/>
+			</a>
+		} else {
+			<a
+ 				hx-get="/photos"
+ 				hx-trigger="revealed"
+ 				hx-swap="afterend"
+ 				href={ templ.URL("/assets/gallery/" + image.Path) }
+ 				data-pswp-width={ strconv.Itoa(image.Width) }
+ 				data-pswp-height={ strconv.Itoa(image.Height) }
+ 				target="_blank"
+			>
+				<img src={ "/assets/gallery/" + image.Path } alt={ "IMG" + strconv.Itoa(index) }/>
+			</a>
+		}
+	}
+}
