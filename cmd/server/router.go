@@ -21,6 +21,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.RemoveTrailingSlash())
 	e.Logger.SetLevel(log.INFO)
 	e.GET("/healthcheck", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
@@ -29,15 +30,19 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	e.Static("/assets", "./static")
 
-	r := models.NewManager(ctx)
+	wsManager := models.NewManager(ctx)
 
-	e.GET("/ws", r.ServeWS)
+	e.GET("/ws", wsManager.ServeWS)
 
-	go r.Run()
+	go wsManager.Run()
 
 	e.GET("/", controllers.Index())
 	e.GET("/gallery", controllers.Gallery())
 	e.GET("/photos", controllers.Photos())
+
+	admin := e.Group("/admin")
+	admin.POST("/signup", controllers.Signup())
+	admin.POST("/login", controllers.Login())
 
 	e.HTTPErrorHandler = serverErrorHandler
 

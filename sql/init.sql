@@ -127,25 +127,17 @@ CREATE TABLE IF NOT EXISTS purchases(
   quantity INT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   updated TIMESTAMP NOT NULL DEFAULT NOW(),
+  orderid TEXT NOT NULL,
   CONSTRAINT fk_op
   FOREIGN KEY (productid)
   REFERENCES products(id),
+  CONSTRAINT fk_os
+  FOREIGN KEY (orderid)
+  REFERENCES orders(id),
   PRIMARY KEY(id)
 );
 
 SELECT apply_update_trigger('purchases');
-
-CREATE TABLE IF NOT EXISTS orders_purchases(
-  orderid TEXT NOT NULL,
-  purchaseid TEXT NOT NULL,
-  CONSTRAINT fk_opp
-  FOREIGN KEY (orderid)
-  REFERENCES orders(id),
-  CONSTRAINT fk_poo
-  FOREIGN KEY (purchaseid)
-  REFERENCES purchases(id),
-  PRIMARY KEY(orderid, purchaseid)
-);
 
 
 CREATE TABLE IF NOT EXISTS visits(
