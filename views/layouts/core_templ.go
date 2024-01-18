@@ -115,7 +115,42 @@ func CoreHTML(site models.Site) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</body><script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var7 := `
+				function sendVisit() {
+					// document.getElementById("wsf").addEventListener('submit', function(event) {
+					// 	event.preventDefault();
+					// 	// You can perform additional actions here before or after preventing the default behavior
+					// });
+
+					// document.getElementById("wsf").submit();
+
+					conn = new WebSocket("ws://" + document.location.host + "/ws");
+
+
+					// Onopen
+          conn.onopen = function (evt) {
+            conn.send(JSON.stringify({ type: "visit", payload: "" }));
+          }
+
+        }
+
+        if(document.readyState !== 'loading') {
+					sendVisit();
+				}
+
+				document.addEventListener('DOMContentLoaded', function () {
+						sendVisit();
+				});
+		`
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

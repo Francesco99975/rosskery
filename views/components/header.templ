@@ -3,8 +3,8 @@ package components
 import "github.com/Francesco99975/rosskery/views/icons"
 
 templ Header() {
-	<header class="grid grid-cols-3 gap-2 place-items-center bg-std text-center text-primary w-full h-24 p-4 sticky top-0 right-0 z-20 shadow-md border-b-2 border-b-primary rounded-b-lg">
-		<nav hx-boost class="md:w-auto">
+	<header hx-boost="true" class="grid grid-cols-3 gap-2 place-items-center bg-std text-center text-primary w-full h-24 p-4 sticky top-0 right-0 z-20 shadow-md border-b-2 border-b-primary rounded-b-lg">
+		<nav class="md:w-auto">
 			<!-- Burger menu icon for small screens -->
 			<div id="burgerMenu" class="burger-menu md:hidden cursor-pointer">
 				<div id="bar1" class="bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0"></div>

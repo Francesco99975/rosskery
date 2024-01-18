@@ -17,7 +17,7 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-func createRouter() *echo.Echo {
+func createRouter(ctx context.Context) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -29,7 +29,7 @@ func createRouter() *echo.Echo {
 
 	e.Static("/assets", "./static")
 
-	r := models.NewManager()
+	r := models.NewManager(ctx)
 
 	e.GET("/ws", r.ServeWS)
 

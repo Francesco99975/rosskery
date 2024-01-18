@@ -35,14 +35,43 @@ templ CoreHTML(site models.Site) {
                     ]
                 }
                 </script>
+			// <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
 			<script type="module" src="/assets/dist/index.js"></script>
 			<link rel="stylesheet" href="/assets/dist/index.css"/>
 		</head>
 		<body class="w-full flex flex-col justify-stretch items-stretch bg-std relative">
+			// <form id="wsf" hx-ws="send"><input type="hidden" name="type" id="type" value="visit"/><input type="hidden" name="payload" id="payload" value=""/></form>
 			<div id="indicator" class="htmx-indicator w-full h-screen absolute bottom-0 right-0 z-50 flex bg-slate-700 opacity-70 justify-center items-center"><div class="loader"></div></div>
 			@components.Header()
 			{ children... }
 			@components.Footer(strconv.Itoa(site.Year))
 		</body>
+		<script>
+				function sendVisit() {
+					// document.getElementById("wsf").addEventListener('submit', function(event) {
+					// 	event.preventDefault();
+					// 	// You can perform additional actions here before or after preventing the default behavior
+					// });
+
+					// document.getElementById("wsf").submit();
+
+					conn = new WebSocket("ws://" + document.location.host + "/ws");
+
+
+					// Onopen
+          conn.onopen = function (evt) {
+            conn.send(JSON.stringify({ type: "visit", payload: "" }));
+          }
+
+        }
+
+        if(document.readyState !== 'loading') {
+					sendVisit();
+				}
+
+				document.addEventListener('DOMContentLoaded', function () {
+						sendVisit();
+				});
+		</script>
 	</html>
 }

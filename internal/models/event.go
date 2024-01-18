@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/labstack/gommon/log"
 )
 
 type Event struct {
@@ -16,25 +18,18 @@ type EventHandler func(event Event, c *Client, anl *Analytics) error
 const (
 	EventVisit = "visit"
 	EventView = "view"
+	EventAuthAdmin = "authadmin"
 	EventUpdateAdmin = "uadmin"
 )
-
-type SendEventVisit struct {
-	Sauce string `json:"sauce"`
-	Agent string `json:"agent"`
-}
 
 type SendAdminUpdate struct {
 	Visits  map[string]*Visit
 }
 
 func SendVisitHandler(event Event, client *Client, anl *Analytics) error{
-	var payload SendEventVisit
-	if err := json.Unmarshal(event.Payload, &payload); err != nil {
-		return fmt.Errorf("bad payload in request: %v", err)
-	}
+	analizer.addVisit(Visit{ Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: client.sauce, Agent: client.agent, Date: time.Now() })
 
-	analizer.addVisit(Visit{ Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: payload.Sauce, Agent: payload.Agent, Date: time.Now() })
+	log.Info("Got Visit")
 
 	update := SendAdminUpdate{
 		Visits: analizer.visits,
@@ -61,7 +56,7 @@ func SendVisitHandler(event Event, client *Client, anl *Analytics) error{
 }
 
 
-func SendViewHandler(event Event, client *Client, anl *Analytics) error{
+func SendViewHandler(event Event, client *Client, anl *Analytics) error {
 	analizer.updateViews(client.id)
 
 	update := SendAdminUpdate{
@@ -86,3 +81,23 @@ func SendViewHandler(event Event, client *Client, anl *Analytics) error{
 	}
 	return nil
 }
+
+type SendOtp struct {
+		OTP string `json:"otp"`
+}
+
+func SendOtpHandler(event Event, client *Client, anl *Analytics) error {
+	var payload SendOtp
+	if err := json.Unmarshal(event.Payload, &payload); err != nil {
+		return fmt.Errorf("bad payload in request: %v", err)
+	}
+
+	// Verify OTP is existing
+	if !client.manager.otps.VerifyOTP(payload.OTP) {
+		return fmt.Errorf("authauthorized bad otp in request")
+	}
+
+	client.room = "admin"
+	return nil
+}
+

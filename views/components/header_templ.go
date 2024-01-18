@@ -25,7 +25,7 @@ func Header() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"grid grid-cols-3 gap-2 place-items-center bg-std text-center text-primary w-full h-24 p-4 sticky top-0 right-0 z-20 shadow-md border-b-2 border-b-primary rounded-b-lg\"><nav hx-boost class=\"md:w-auto\"><!--")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header hx-boost=\"true\" class=\"grid grid-cols-3 gap-2 place-items-center bg-std text-center text-primary w-full h-24 p-4 sticky top-0 right-0 z-20 shadow-md border-b-2 border-b-primary rounded-b-lg\"><nav class=\"md:w-auto\"><!--")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

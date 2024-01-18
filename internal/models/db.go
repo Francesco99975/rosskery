@@ -14,7 +14,8 @@ var db *sqlx.DB
 
 
 func Setup(dsn string) {
-	db, err := sqlx.Connect("postgres", dsn)
+	var err error
+	db, err = sqlx.Connect("postgres", dsn)
 	if err != nil {
         log.Fatalln(err)
   }
