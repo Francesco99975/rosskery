@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/labstack/gommon/log"
 )
 
 type Event struct {
@@ -27,9 +25,14 @@ type SendAdminUpdate struct {
 }
 
 func SendVisitHandler(event Event, client *Client, anl *Analytics) error{
-	analizer.addVisit(Visit{ Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: client.sauce, Agent: client.agent, Date: time.Now() })
+	var source string
+	if len(client.sauce) > 0 {
+		source = client.sauce
+	} else {
+		source = "direct"
+	}
 
-	log.Info("Got Visit")
+	analizer.addVisit(Visit{ Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: source, Agent: client.agent, Date: time.Now() })
 
 	update := SendAdminUpdate{
 		Visits: analizer.visits,
