@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Francesco99975/rosskery/internal/api"
 	"github.com/Francesco99975/rosskery/internal/controllers"
+	"github.com/Francesco99975/rosskery/internal/middlewares"
 
 	// "github.com/Francesco99975/rosskery/internal/middlewares"
 	"github.com/Francesco99975/rosskery/internal/models"
@@ -40,9 +42,13 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.GET("/gallery", controllers.Gallery())
 	e.GET("/photos", controllers.Photos())
 
+	e.POST("/login", api.Login(wsManager))
+
 	admin := e.Group("/admin")
-	admin.POST("/signup", controllers.Signup())
-	admin.POST("/login", controllers.Login())
+	admin.Use(middlewares.IsAuthenticatedAdmin())
+	admin.POST("/signup", api.Signup())
+
+
 
 	e.HTTPErrorHandler = serverErrorHandler
 

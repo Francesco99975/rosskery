@@ -91,6 +91,10 @@ type ConnectionManager struct {
 	otps RetentionMap
 }
 
+func (cm *ConnectionManager) GenerateNewOtp() string {
+	return cm.otps.NewOTP().Key
+}
+
 func NewManager(ctx context.Context) *ConnectionManager {
 	cm :=  &ConnectionManager{
 		connect: make(chan *Client),

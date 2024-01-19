@@ -50,7 +50,7 @@ func CreateProduct(name string, description string, price int, image string, fea
 
 	category, err := GetCategory(categoryId)
 	if err != nil {
-		return &Product{}, err
+		return nil, err
 	}
 
 	return &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Image: image, Featured: featured, Published: published, Category: *category, Weighed: weighed}, nil
