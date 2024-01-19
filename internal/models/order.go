@@ -17,9 +17,16 @@ type Purchase struct {
 func CreatePurchase(productId string, quantity int) (*Purchase, error) {
 	statement := "INSERT INTO purchases (id, productid, quantity) VALUES ($1, $2, $3)"
 
+	product, err := GetProduct(productId)
+	if err != nil {
+		return nil, err
+	}
+
+	newPurchase := &Purchase{Id: uuid.NewV4().String(), Product: *product, Quantity: quantity}
+
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, uuid.NewV4().String(), productId, quantity); err != nil {
+	if _, err := tx.Exec(statement, newPurchase.Id, newPurchase.Product.Id, newPurchase.Quantity); err != nil {
 	if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -33,7 +40,7 @@ func CreatePurchase(productId string, quantity int) (*Purchase, error) {
 		return nil, err
 	}
 
-	return &Purchase{Id: uuid.NewV4().String(), Product: Product{Id: productId}, Quantity: quantity}, nil
+	return newPurchase, nil
 }
 
 func GetPurchases() ([]Purchase, error) {
@@ -90,26 +97,26 @@ func GetPurchase(id string) (*Purchase, error) {
 	return &purchase, nil
 }
 
-func (p *Purchase) Delete() error {
+func (p *Purchase) Delete() (*Purchase, error) {
 	statement := "DELETE FROM purchases WHERE id = $1"
 
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, p.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return p, nil
 }
 
 type Order struct {
@@ -122,26 +129,28 @@ type Order struct {
 	Updated time.Time `json:"updated"`
 }
 
-func CreateOrder(customerId string, pickuptime time.Time, purchases []Purchase) (*Order, error) {
+type PurchasedItem struct {
+	Product Product `json:"product"`
+	Quantity int `json:"quantity"`
+}
+
+func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem) (*Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled) VALUES ($1, $2, $3, $4)"
+
+	customer, err := GetCustomer(customerId)
+	if err != nil {
+		return nil, err
+	}
+
+	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *customer, Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false}
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, uuid.NewV4().String(), customerId, pickuptime, false); err != nil {
+	if _, err := tx.Exec(statement, newOrder.Id, newOrder.Customer.Id, newOrder.Pickuptime, newOrder.Fulfilled); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
 		return nil, err
-	}
-
-	for _, purchase := range purchases {
-		_, err := CreatePurchase(purchase.Product.Id, purchase.Quantity)
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return nil, rollbackErr
-			}
-			return nil, err
-		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -151,12 +160,16 @@ func CreateOrder(customerId string, pickuptime time.Time, purchases []Purchase) 
 		return nil, err
 	}
 
-	customer, err := GetCustomer(customerId)
-	if err != nil {
-		return nil, err
+	for i, item := range items {
+		purchase, err := CreatePurchase(item.Product.Id, item.Quantity)
+		if err != nil {
+			return nil, err
+		}
+
+		newOrder.Purchases[i] = *purchase
 	}
 
-	return &Order{Id: uuid.NewV4().String(), Customer: *customer, Pickuptime: pickuptime, Purchases: purchases, Fulfilled: false}, nil
+	return newOrder, nil
 }
 
 func GetOrders() ([]Order, error) {
@@ -261,26 +274,26 @@ func GetOrder(id string) (*Order, error) {
 	return &order, nil
 }
 
-func (o *Order) Fulfill() error {
+func (o *Order) Fulfill() (*Order, error) {
 	statement := "UPDATE orders SET fulfilled = $1 WHERE id = $2"
 
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, true, o.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return o, nil
 }
 
 func (o *Order) CalculateTotal() int {
@@ -295,7 +308,7 @@ func (o *Order) Delete() error {
 	statement := "DELETE FROM orders WHERE id = $1"
 
 	for _, purchase := range o.Purchases {
-		err := purchase.Delete()
+		_, err := purchase.Delete()
 		if err != nil {
 			return err
 		}

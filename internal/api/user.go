@@ -32,12 +32,13 @@ func User(id string) echo.HandlerFunc {
 
 func UpdateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		id := c.Param("id")
 		var req models.User
 		if err := c.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing request body: %v", err))
 		}
 
-		user, err := models.GetUserById(req.Id)
+		user, err := models.GetUserById(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
 		}

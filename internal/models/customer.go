@@ -95,9 +95,14 @@ func GetCustomerByEmail(email string) (*Customer, error) {
 func (customer *Customer) Update(fullname string, email string, address string, phone string) error {
 	statement := "UPDATE customers SET fullname = $1, email = $2, address = $3, phone = $4 WHERE id = $5"
 
+	customer.Fullname = fullname
+	customer.Email = email
+	customer.Address = address
+	customer.Phone = phone
+
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, fullname, email, address, phone, customer.Id); err != nil {
+	if _, err := tx.Exec(statement, customer.Fullname, customer.Email, customer.Address, customer.Phone, customer.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
 		}

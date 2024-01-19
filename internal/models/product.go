@@ -29,12 +29,19 @@ func ProductExists(name string) bool {
 	return err != nil
 }
 
-func CreateProduct(name string, description string, price int, image string, featured bool, published bool, categoryId string, weighed bool) (*Product, error) {
+func CreateProduct(name string, description string, price int, image string, categoryId string, weighed bool) (*Product, error) {
 	statement := "INSERT INTO products (id, name, description, price, image, featured, published, category, weighed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, uuid.NewV4().String(), name, description, price, image, featured, published, categoryId, weighed); err != nil {
+	category, err := GetCategory(categoryId)
+	if err != nil {
+		return nil, err
+	}
+
+	newProduct := &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Image: image, Featured: false, Published: true, Category: *category, Weighed: weighed}
+
+	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, false, true, newProduct.Category.Id, newProduct.Weighed); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -42,18 +49,18 @@ func CreateProduct(name string, description string, price int, image string, fea
 	}
 
 	if err := tx.Commit(); err != nil {
-	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
 		return nil, err
 	}
 
-	category, err := GetCategory(categoryId)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Image: image, Featured: featured, Published: published, Category: *category, Weighed: weighed}, nil
+	return newProduct, nil
 }
 
 func GetProducts() ([]Product, error) {
@@ -98,14 +105,27 @@ func GetProductsByCategory(categoryId string) ([]Product, error) {
 func (product *Product) Update(name string, description string, price int, image string, featured bool, published bool, categoryId string, weighed bool) error {
 	statement := "UPDATE products SET name = $1, description = $2, price = $3, image = $4, featured = $5, published = $6, category = $7, weighed = $8 WHERE id = $9"
 
+	category, err := GetCategory(categoryId)
+	if err != nil {
+		return err
+	}
+
+	product.Name = name
+	product.Description = description
+	product.Price = price
+	product.Image = image
+	product.Featured = featured
+	product.Published = published
+	product.Category = *category
+	product.Weighed = weighed
+
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, name, description, price, image, featured, published, categoryId, weighed); err != nil {
-		errr := err
+	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
 		}
-		return errr
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {

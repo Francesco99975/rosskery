@@ -20,7 +20,9 @@ func CreateCategory(name string) (*Category, error) {
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, uuid.NewV4().String(), name); err != nil {
+	newCategory := &Category{ Id: uuid.NewV4().String(), Name: name }
+
+	if _, err := tx.Exec(statement, newCategory.Id, newCategory.Name); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -34,7 +36,7 @@ func CreateCategory(name string) (*Category, error) {
 		return nil, err
 	}
 
-	return &Category{Id: uuid.NewV4().String(), Name: name}, nil
+	return newCategory, nil
 }
 
 
@@ -71,7 +73,9 @@ func (category *Category) Update(name string) error {
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, name, category.Id); err != nil {
+	category.Name = name
+
+	if _, err := tx.Exec(statement, category.Name, category.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
 		}

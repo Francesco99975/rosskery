@@ -186,9 +186,12 @@ func (user *DbUser) VerifyPassword(password string) error {
 func (user *DbUser) Update(data *User) error {
 	statement := "UPDATE users SET username = $1, email = $2 WHERE id = $5"
 
+	user.Username = data.Username
+	user.Email = data.Email
+
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, data.Username, data.Email, user.Id); err != nil {
+	if _, err := tx.Exec(statement, user.Username, user.Email, user.Id); err != nil {
 	if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
 		}

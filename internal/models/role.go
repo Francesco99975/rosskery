@@ -18,9 +18,11 @@ func RoleExists(name string) bool {
 func CreateRole(name string) (*Role, error) {
 	statement := "INSERT INTO roles (id, name) VALUES ($1, $2)"
 
+	role := &Role{Id: uuid.NewV4().String(), Name: name}
+
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, uuid.NewV4().String(), name); err != nil {
+	if _, err := tx.Exec(statement, role.Id, role.Name); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -34,7 +36,7 @@ func CreateRole(name string) (*Role, error) {
 		return nil, err
 	}
 
-	return &Role{Id: uuid.NewV4().String(), Name: name}, nil
+	return role, nil
 }
 
 func GetRoles() ([]Role, error) {
