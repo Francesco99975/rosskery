@@ -31,41 +31,38 @@ func CreateUser(u *User, password string, roleId string) (*User, error) {
 	statement := "INSERT INTO users (id, username, email, password) VALUES ($1, $2, $3, $4)"
 	roleStatement := "INSERT INTO users_roles (user_id, role_id) VALUES ($1, $2)"
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-		if err != nil {
-			return &User{}, fmt.Errorf("Error while hashing password: %v", err)
-		}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return nil, fmt.Errorf("Error while hashing password: %v", err)
+	}
 
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, u.Id, u.Username, u.Email, hashedPassword); err != nil {
-		errr := err
-		err = tx.Rollback()
-		if err != nil {
-			return &User{},err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
 		}
-
-		return &User{},errr
+		return nil, err
 	}
 
 	if _, err := tx.Exec(roleStatement, u.Id, roleId); err != nil {
-		errrr := err
-		err = tx.Rollback()
-		if err != nil {
-			return &User{},err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
 		}
-
-		return &User{},errrr
+		return nil, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return &User{}, err
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
 	}
 
 	newUser, err := GetUserById(u.Id)
 	if err != nil {
-		return &User{}, err
+		return nil, err
 	}
 
 	return newUser.ToUser()
@@ -160,18 +157,18 @@ func (user *DbUser) UpdatePassword(oldPassword, password string) error {
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, hashedPassword, user.Id); err != nil {
-		errr := err
-		err = tx.Rollback()
-		if err != nil {
-			return err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
 		}
-
-		return errr
+		return err
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
 		return err
 	}
 
@@ -192,18 +189,18 @@ func (user *DbUser) Update(data *User) error {
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, data.Username, data.Email, user.Id); err != nil {
-		errr := err
-		err = tx.Rollback()
-		if err != nil {
-			return err
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
 		}
-
-		return errr
+		return err
 	}
 
 	err := tx.Commit()
 
 	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
 		return err
 	}
 
@@ -216,17 +213,17 @@ func (user *DbUser) UpdateRole(role Role) error {
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, role.Id, user.Id); err != nil {
-		errr := err
-		err = tx.Rollback()
-		if err != nil {
-			return err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
 		}
-
-		return errr
+		return err
 	}
 
 	err := tx.Commit()
 	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
 		return err
 	}
 
@@ -239,18 +236,18 @@ func (user *DbUser) Delete() error {
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, user.Id); err != nil {
-		errr := err
-		err = tx.Rollback()
-		if err != nil {
-			return err
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
 		}
-
-		return errr
+		return err
 	}
 
 	err := tx.Commit()
 
 	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
 		return err
 	}
 
@@ -265,7 +262,7 @@ func (u *DbUser) ToUser() (*User, error) {
 	err := db.Select(&role, statement, u.Id)
 
 	if err != nil {
-		return &User{}, err
+		return nil, err
 	}
 
 	return &User{

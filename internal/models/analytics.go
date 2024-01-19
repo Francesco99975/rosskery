@@ -69,32 +69,16 @@ func (anl * Analytics) archiveVisit(id string) {
 	anl.lock.Lock()
 	defer anl.lock.Unlock()
 
-	archived := anl.visits[id]
-	if archived == nil {
+	visit := anl.visits[id]
+	if visit == nil {
 		log.Debug("Visit not found")
 		return
 	}
 	defer delete(anl.visits, id)
 
-	archived.Duration = int(time.Since(archived.Date).Milliseconds())
-
-	statement := `INSERT INTO visits(id, ip, views, duration, sauce, agent) VALUES($1, $2, $3, $4, $5, $6);`
-
-	tx := db.MustBegin()
-
-	if _, err := tx.Exec(statement, archived.Id, archived.Ip, archived.Views, archived.Duration, archived.Sauce, archived.Agent); err != nil {
+	if err := visit.Archive(); err != nil {
 		log.Error(err)
-		err = tx.Rollback()
-
-		if err != nil {
-			log.Error(err)
-		}
-	}
-
-	err := tx.Commit()
-
-	if err != nil {
-		log.Error(err)
+		return
 	}
 }
 

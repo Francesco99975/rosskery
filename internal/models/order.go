@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	uuid "github.com/satori/go.uuid"
+)
 
 type Purchase struct {
 	Id string `json:"id"`
@@ -8,6 +12,104 @@ type Purchase struct {
 	Quantity int `json:"quantity"`
 	Created time.Time `json:"created"`
 	Updated time.Time `json:"updated"`
+}
+
+func CreatePurchase(productId string, quantity int) (*Purchase, error) {
+	statement := "INSERT INTO purchases (id, productid, quantity) VALUES ($1, $2, $3)"
+
+	tx := db.MustBegin()
+
+	if _, err := tx.Exec(statement, uuid.NewV4().String(), productId, quantity); err != nil {
+	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	return &Purchase{Id: uuid.NewV4().String(), Product: Product{Id: productId}, Quantity: quantity}, nil
+}
+
+func GetPurchases() ([]Purchase, error) {
+	var purchases []Purchase
+
+	statement := "SELECT * FROM purchases"
+
+	err := db.Select(&purchases, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return purchases, nil
+}
+
+func GetOrderPurchases(orderId string) ([]Purchase, error) {
+	var purchases []Purchase
+
+	statement := "SELECT * FROM purchases WHERE orderid = $1"
+
+	err := db.Select(&purchases, statement, orderId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return purchases, nil
+}
+
+func GetProductPurchases(productId string) ([]Purchase, error) {
+	var purchases []Purchase
+
+	statement := "SELECT * FROM purchases WHERE productid = $1"
+
+	err := db.Select(&purchases, statement, productId)
+	if err != nil {
+		return nil, err
+	}
+
+	return purchases, nil
+}
+
+func GetPurchase(id string) (*Purchase, error) {
+	var purchase Purchase
+
+	statement := "SELECT * FROM purchases WHERE id = $1"
+
+	err := db.Select(purchase, statement, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &purchase, nil
+}
+
+func (p *Purchase) Delete() error {
+	statement := "DELETE FROM purchases WHERE id = $1"
+
+	tx := db.MustBegin()
+
+	if _, err := tx.Exec(statement, p.Id); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return nil
 }
 
 type Order struct {
@@ -18,4 +120,202 @@ type Order struct {
 	Fulfilled bool `json:"fulfilled"`
 	Created time.Time `json:"created"`
 	Updated time.Time `json:"updated"`
+}
+
+func CreateOrder(customerId string, pickuptime time.Time, purchases []Purchase) (*Order, error) {
+	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled) VALUES ($1, $2, $3, $4)"
+
+	tx := db.MustBegin()
+
+	if _, err := tx.Exec(statement, uuid.NewV4().String(), customerId, pickuptime, false); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	for _, purchase := range purchases {
+		_, err := CreatePurchase(purchase.Product.Id, purchase.Quantity)
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return nil, rollbackErr
+			}
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	customer, err := GetCustomer(customerId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Order{Id: uuid.NewV4().String(), Customer: *customer, Pickuptime: pickuptime, Purchases: purchases, Fulfilled: false}, nil
+}
+
+func GetOrders() ([]Order, error) {
+	var orders []Order
+
+	statement := "SELECT * FROM orders"
+
+	err := db.Select(&orders, statement)
+
+	for _, order := range orders {
+		order.Purchases, err = GetOrderPurchases(order.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func GetCustomerOrders(customerId string) ([]Order, error) {
+	var orders []Order
+
+	statement := "SELECT * FROM orders WHERE customer = $1"
+
+	err := db.Select(&orders, statement, customerId)
+
+	for _, order := range orders {
+		order.Purchases, err = GetOrderPurchases(order.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func GetFulfilledOrders() ([]Order, error) {
+	var orders []Order
+
+	statement := "SELECT * FROM orders WHERE fulfilled = $1"
+
+	err := db.Select(&orders, statement, true)
+
+	for _, order := range orders {
+		order.Purchases, err = GetOrderPurchases(order.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func GetUnfulfilledOrders() ([]Order, error) {
+	var orders []Order
+
+	statement := "SELECT * FROM orders WHERE fulfilled = $1"
+
+	err := db.Select(&orders, statement, false)
+
+	for _, order := range orders {
+		order.Purchases, err = GetOrderPurchases(order.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func GetOrder(id string) (*Order, error) {
+	var order Order
+
+	statement := "SELECT * FROM orders WHERE id = $1"
+
+	err := db.Select(order, statement, id)
+	if err != nil {
+		return nil, err
+	}
+
+	order.Purchases, err = GetOrderPurchases(order.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &order, nil
+}
+
+func (o *Order) Fulfill() error {
+	statement := "UPDATE orders SET fulfilled = $1 WHERE id = $2"
+
+	tx := db.MustBegin()
+
+	if _, err := tx.Exec(statement, true, o.Id); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (o *Order) CalculateTotal() int {
+	total := 0
+	for _, purchase := range o.Purchases {
+		total += purchase.Product.Price * purchase.Quantity
+	}
+	return total
+}
+
+func (o *Order) Delete() error {
+	statement := "DELETE FROM orders WHERE id = $1"
+
+	for _, purchase := range o.Purchases {
+		err := purchase.Delete()
+		if err != nil {
+			return err
+		}
+	}
+
+	tx := db.MustBegin()
+
+	if _, err := tx.Exec(statement, o.Id); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return nil
 }
