@@ -129,11 +129,6 @@ type Order struct {
 	Updated time.Time `json:"updated"`
 }
 
-type PurchasedItem struct {
-	Product Product `json:"product"`
-	Quantity int `json:"quantity"`
-}
-
 func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem) (*Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled) VALUES ($1, $2, $3, $4)"
 

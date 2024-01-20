@@ -6,6 +6,7 @@ import (
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 func Users() echo.HandlerFunc {
@@ -19,8 +20,9 @@ func Users() echo.HandlerFunc {
 	}
 }
 
-func User(id string) echo.HandlerFunc {
+func User() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		id := c.Param("id")
 		user, err := models.GetUserById(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
@@ -59,11 +61,19 @@ func DeleteUser() echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
 		}
 
-		if err := user.Delete(); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error deleting user: %v", err))
+		defer func () {
+			err = user.Delete()
+			if err != nil {
+				log.Errorf("Error while deleting order: %v", err)
+			}
+		}()
+
+		juser, err := user.ToUser()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User could not be converted. Cause -> %v", err))
 		}
 
-		return c.NoContent(http.StatusNoContent)
+		return c.JSON(http.StatusOK, juser)
 	}
 }
 

@@ -47,8 +47,25 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin := e.Group("/admin")
 	admin.Use(middlewares.IsAuthenticatedAdmin())
 	admin.POST("/signup", api.Signup())
-
-
+	admin.GET("/categories", api.Categories())
+	admin.POST("/categories", api.CreateCategory())
+	admin.DELETE("/categories/:id", api.DeleteCategory())
+	admin.GET("/customers", api.Customers())
+	admin.GET("/customers/:id", api.Customer())
+	admin.DELETE("/customers/:id", api.DeleteCustomer())
+	admin.GET("/orders", api.Orders())
+	admin.GET("/orders/:id", api.Order())
+	admin.POST("orders", api.IssueOrder())
+	admin.DELETE("orders/:id", api.DeleteOrder())
+	admin.GET("/products", api.Products())
+	admin.GET("/products/:id", api.Product())
+	admin.POST("products", api.AddProduct())
+	admin.PUT("/products/:id", api.UpdateProduct())
+	admin.DELETE("/products/:id", api.DeleteProduct())
+	admin.GET("/roles", api.Roles())
+	admin.GET("/users", api.Users())
+	admin.GET("/users/:id", api.User())
+	admin.DELETE("/users/:id", api.DeleteUser())
 
 	e.HTTPErrorHandler = serverErrorHandler
 

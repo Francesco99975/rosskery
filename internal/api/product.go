@@ -6,28 +6,18 @@ import (
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
-
-type ProductDto struct {
-	name string
-	description string
-	price int
-	image string
-	featured bool
-	published bool
-	categoryId string
-	weighed bool
-}
 
 
 func AddProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var payload ProductDto
+		var payload models.ProductDto
 		if err := c.Bind(&payload); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing request body: %v", err))
 		}
 
-		product, err := models.CreateProduct(payload.name, payload.description, payload.price, payload.image, payload.categoryId, payload.weighed)
+		product, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, payload.Image, payload.CategoryId, payload.Weighed)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error creating product: %v", err))
 		}
@@ -68,7 +58,7 @@ func Product() echo.HandlerFunc {
 func UpdateProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
-		var payload ProductDto
+		var payload models.ProductDto
 		if err := c.Bind(&payload); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing request body: %v", err))
 		}
@@ -78,7 +68,7 @@ func UpdateProduct() echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Product not found. Cause -> %v", err))
 		}
 
-		if err := product.Update(payload.name, payload.description, payload.price, payload.image, payload.featured, payload.published, payload.categoryId, payload.weighed); err != nil {
+		if err := product.Update(payload.Name, payload.Description, payload.Price, payload.Image, payload.Featured, payload.Published, payload.CategoryId, payload.Weighed); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error updating product: %v", err))
 		}
 
@@ -94,10 +84,13 @@ func DeleteProduct() echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Product not found. Cause -> %v", err))
 		}
 
-		if err := product.Delete(); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error deleting product: %v", err))
-		}
+		defer func () {
+			err = product.Delete()
+			if err != nil {
+				log.Errorf("Error deleting product: %v", err)
+			}
+		}()
 
-		return c.NoContent(http.StatusNoContent)
+		return c.JSON(http.StatusOK, product)
 	}
 }
