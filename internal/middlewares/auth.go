@@ -13,8 +13,8 @@ import (
 )
 
 func validateToken(tokenString string) (string, error) {
-	token, err := jwt.Parse(tokenString, func(tokenString *jwt.Token) (interface{}, error) {
-		if _, ok := tokenString.Method.(*jwt.SigningMethodHMAC);!ok {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("There was an error")
 		}
 
@@ -26,10 +26,10 @@ func validateToken(tokenString string) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		expired := claims["exp"].(int64)
+		expired := int64(claims["exp"].(float64))
 
-		if time.Unix(expired, 0).After(time.Now()) {
-			return "", fmt.Errorf("Token has expired")
+		if time.Now().Unix() > expired {
+			return "", fmt.Errorf("Token expired at %v, now is %v", time.Unix(expired, 0), time.Now())
 		}
 
 		return claims["sub"].(string), nil
@@ -38,32 +38,34 @@ func validateToken(tokenString string) (string, error) {
 	}
 }
 
+
+
 func IsAuthenticatedAdmin() echo.MiddlewareFunc {
 	return func (next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			token := c.Request().Header.Get("Authorization")
 
 			if token == "" {
-				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized. Cause -> Token not provided")
+				return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{ Code: http.StatusUnauthorized, Message: "Unauthorized. Cause -> Token not provided"})
 			}
 
 			userid, err := validateToken(token)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, fmt.Errorf("Unauthorized. Cause -> %v", err))
+				return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{ Code: http.StatusUnauthorized, Message: fmt.Sprintf("Unauthorized. Cause -> %v", err), Errors: []string{err.Error()}})
 			}
 
 			user, err := models.GetUserById(userid)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, fmt.Errorf("Unauthorized. Cause -> %v", err))
+				return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{ Code: http.StatusUnauthorized, Message: fmt.Sprintf("Unauthorized. Cause -> %v", err), Errors: []string{err.Error()}})
 			}
 
 			basic, err := user.ToUser()
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, fmt.Errorf("Unauthorized. Cause -> %v", err))
+				return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{ Code: http.StatusUnauthorized, Message: fmt.Sprintf("Unauthorized. Cause -> %v", err), Errors: []string{err.Error()}})
 			}
 
 			if basic.Role.Id != "3" {
-				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized. Cause -> User is not an admin")
+				return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{ Code: http.StatusUnauthorized, Message: "Unauthorized. Cause -> User not an Admin"})
 			}
 
 			c.Set("userid", userid)

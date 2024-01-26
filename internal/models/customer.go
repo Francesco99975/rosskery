@@ -20,7 +20,7 @@ func CustomerExists(email string) bool {
 	statement := "SELECT * FROM customers WHERE email = $1"
 	var customer Customer
 
-	err := db.Select(customer, statement, email)
+	err := db.Get(&customer, statement, email)
 
 	return err != nil
 }
@@ -51,7 +51,7 @@ func CreateCustomer(fullname string, email string, address string, phone string)
 }
 
 func GetCustomers() ([]Customer, error) {
-	var customers []Customer
+	var customers []Customer = make([]Customer, 0)
 
 	statement := "SELECT * FROM customers"
 
@@ -69,7 +69,7 @@ func GetCustomer(id string) (*Customer, error) {
 
 	statement := "SELECT * FROM customers WHERE id = $1"
 
-	err := db.Select(customer, statement, id)
+	err := db.Get(&customer, statement, id)
 
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func GetCustomerByEmail(email string) (*Customer, error) {
 
 	statement := "SELECT * FROM customers WHERE email = $1"
 
-	err := db.Select(customer, statement, email)
+	err := db.Get(&customer, statement, email)
 
 	if err != nil {
 		return nil, err

@@ -13,7 +13,7 @@ func GetVisits() echo.HandlerFunc {
 	return func (c echo.Context) error {
 		visits, err := models.GetVisits()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error while fetching visits: %v", err))
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{ Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching visits: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, visits)

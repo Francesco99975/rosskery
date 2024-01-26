@@ -44,7 +44,7 @@ func CreatePurchase(productId string, quantity int) (*Purchase, error) {
 }
 
 func GetPurchases() ([]Purchase, error) {
-	var purchases []Purchase
+	var purchases []Purchase = make([]Purchase, 0)
 
 	statement := "SELECT * FROM purchases"
 
@@ -57,7 +57,7 @@ func GetPurchases() ([]Purchase, error) {
 }
 
 func GetOrderPurchases(orderId string) ([]Purchase, error) {
-	var purchases []Purchase
+	var purchases []Purchase = make([]Purchase, 0)
 
 	statement := "SELECT * FROM purchases WHERE orderid = $1"
 
@@ -71,7 +71,7 @@ func GetOrderPurchases(orderId string) ([]Purchase, error) {
 }
 
 func GetProductPurchases(productId string) ([]Purchase, error) {
-	var purchases []Purchase
+	var purchases []Purchase = make([]Purchase, 0)
 
 	statement := "SELECT * FROM purchases WHERE productid = $1"
 
@@ -88,7 +88,7 @@ func GetPurchase(id string) (*Purchase, error) {
 
 	statement := "SELECT * FROM purchases WHERE id = $1"
 
-	err := db.Select(purchase, statement, id)
+	err := db.Get(&purchase, statement, id)
 
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 }
 
 func GetOrders() ([]Order, error) {
-	var orders []Order
+	var orders []Order = make([]Order, 0)
 
 	statement := "SELECT * FROM orders"
 
@@ -197,7 +197,7 @@ func GetOrders() ([]Order, error) {
 }
 
 func GetCustomerOrders(customerId string) ([]Order, error) {
-	var orders []Order
+	var orders []Order = make([]Order, 0)
 
 	statement := "SELECT * FROM orders WHERE customer = $1"
 
@@ -218,7 +218,7 @@ func GetCustomerOrders(customerId string) ([]Order, error) {
 }
 
 func GetFulfilledOrders() ([]Order, error) {
-	var orders []Order
+	var orders []Order = make([]Order, 0)
 
 	statement := "SELECT * FROM orders WHERE fulfilled = $1"
 
@@ -239,7 +239,7 @@ func GetFulfilledOrders() ([]Order, error) {
 }
 
 func GetUnfulfilledOrders() ([]Order, error) {
-	var orders []Order
+	var orders []Order = make([]Order, 0)
 
 	statement := "SELECT * FROM orders WHERE fulfilled = $1"
 
@@ -264,7 +264,7 @@ func GetOrder(id string) (*Order, error) {
 
 	statement := "SELECT * FROM orders WHERE id = $1"
 
-	err := db.Select(order, statement, id)
+	err := db.Get(&order, statement, id)
 	if err != nil {
 		return nil, err
 	}

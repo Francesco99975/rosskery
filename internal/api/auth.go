@@ -18,15 +18,15 @@ type RegisterPayload struct {
 }
 
 type LoginPayload struct {
-	email string
-	password string
+	Email string `json:"email"`
+	Password string `json:"password"`
 }
 
 func Signup() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var payload RegisterPayload
 		if err := c.Bind(&payload); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing request body: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: "Invalid request body", Errors: []string{err.Error()}})
 		}
 
 		if len(payload.roleid) < 1 {
@@ -34,45 +34,51 @@ func Signup() echo.HandlerFunc {
 		}
 
 		if models.UserExists(payload.email) {
-			return echo.NewHTTPError(http.StatusConflict, "User already exists")
+			return c.JSON(http.StatusConflict, models.JSONErrorResponse{ Code: http.StatusConflict, Message: "User already exists"})
 		}
 
-		user, err := models.CreateUser(&models.User{ Id: uuid.NewV4().String(), Username: payload.username, Email: payload.email}, payload.password, payload.roleid)
+		user, err := models.CreateUser(&models.User{Id: uuid.NewV4().String(), Username: payload.username, Email: payload.email}, payload.password, payload.roleid)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{ Code: http.StatusInternalServerError, Message: "Error creating user", Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusCreated, user)
 	}
 }
 
+
+type LoginInfo struct{
+	Token string `json:"token"`
+	Otp string	`json:"otp"`
+}
+
+
 func Login(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		var payload LoginPayload
 		if err := c.Bind(&payload); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error binding payload: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: "Invalid request body", Errors: []string{err.Error()}})
 		}
 
-		user, err := models.GetUserFromEmail(payload.email)
-
+		user, err := models.GetUserFromEmail(payload.Email)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
+			return c.JSON(http.StatusNotFound, models.JSONErrorResponse{ Code: http.StatusNotFound, Message: fmt.Sprintf("User not found. Cause -> %v", err)})
 		}
 
-		err = user.VerifyPassword(payload.password)
+		err = user.VerifyPassword(payload.Password)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusUnauthorized, fmt.Errorf("Unauthorized: wrong password. Cause -> %v", err))
+			return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{ Code: http.StatusUnauthorized, Message: fmt.Sprintf("Unauthorized: wrong password. Cause -> %v", err)})
 		}
 
 		token, err := user.GenerateToken()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error while generating token. Cause -> %v", err))
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{ Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error while generating token. Cause -> %v", err)})
 		}
 
 		otp := cm.GenerateNewOtp()
 
-		return c.JSON(http.StatusOK, struct{ token string; otp string }{token: token, otp: otp})
+		return c.JSON(http.StatusOK, LoginInfo{ Token: token, Otp: otp})
 	}
 }
 

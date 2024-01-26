@@ -8,15 +8,15 @@ type Role struct {
 }
 
 func RoleExists(name string) bool {
-	statement := "SELECT * FROM roles WHERE name = $1"
+	statement := "SELECT id, role as name  FROM roles WHERE name = $1"
 	var role Role
 
-	err := db.Select(role, statement, name)
+	err := db.Get(&role, statement, name)
 	return err != nil
 }
 
 func CreateRole(name string) (*Role, error) {
-	statement := "INSERT INTO roles (id, name) VALUES ($1, $2)"
+	statement := "INSERT INTO roles (id, role) VALUES ($1, $2)"
 
 	role := &Role{Id: uuid.NewV4().String(), Name: name}
 
@@ -40,9 +40,9 @@ func CreateRole(name string) (*Role, error) {
 }
 
 func GetRoles() ([]Role, error) {
-	var roles []Role
+	var roles []Role = make([]Role, 0)
 
-	statement := "SELECT * FROM roles"
+	statement := "SELECT id, role as name FROM roles"
 
 	err := db.Select(&roles, statement)
 
@@ -56,9 +56,9 @@ func GetRoles() ([]Role, error) {
 func GetRoleById(id string) (*Role, error) {
 	var role Role
 
-	statement := "SELECT * FROM roles WHERE id = $1"
+	statement := "SELECT id, role as name FROM roles WHERE id = $1"
 
-	err := db.Select(role, statement, id)
+	err := db.Get(&role, statement, id)
 	if err != nil {
 		return nil, err
 	}

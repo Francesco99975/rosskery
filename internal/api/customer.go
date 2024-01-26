@@ -13,7 +13,7 @@ func Customers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		customers, err := models.GetCustomers()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error fetching customers: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching customers: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, customers)
@@ -25,7 +25,7 @@ func Customer() echo.HandlerFunc {
 		id := c.Param("id")
 		customer, err := models.GetCustomer(id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error fetching customer: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching customer: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, customer)
@@ -38,7 +38,7 @@ func DeleteCustomer() echo.HandlerFunc {
 		id := c.Param("id")
 		customer, err := models.GetCustomer(id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error fetching customer while deleting: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching customer while deleting: %v", err), Errors: []string{err.Error()}})
 		}
 
 		defer func () {

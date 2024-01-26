@@ -13,7 +13,7 @@ func Roles() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		roles, err := models.GetRoles()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error while fetching roles: %v", err))
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{ Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching roles: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, roles)
@@ -24,12 +24,12 @@ func Role() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var payload models.Role
 		if err := c.Bind(&payload); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing request body: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing request body for role: %v", err), Errors: []string{err.Error()}})
 		}
 
 		role, err := models.GetRoleById(payload.Id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("Role not found. Cause -> %v", err))
+			return c.JSON(http.StatusNotFound, models.JSONErrorResponse{ Code: http.StatusNotFound, Message: fmt.Sprintf("Role not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, role)

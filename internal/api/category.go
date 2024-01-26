@@ -18,12 +18,12 @@ func CreateCategory() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var payload CategoryDto
 		if err := c.Bind(&payload); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing data for category: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing data for category: %v", err), Errors: []string{err.Error()}})
 		}
 
 		category, err := models.CreateCategory(payload.category)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error creating category: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating category: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusCreated, category)
@@ -34,7 +34,7 @@ func Categories() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		categories, err := models.GetCategories()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error fetching categories: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching categories: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, categories)
@@ -46,7 +46,7 @@ func DeleteCategory() echo.HandlerFunc {
 		id := c.Param("id")
 		category, err := models.GetCategory(id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error fetching category while deleting: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching category while deleting: %v", err), Errors: []string{err.Error()}})
 		}
 
 		defer func () {

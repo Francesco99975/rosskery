@@ -13,7 +13,7 @@ func Users() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		users, err := models.GetAllUsers()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error while fetching users: %v", err))
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{ Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching users: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, users)
@@ -25,7 +25,7 @@ func User() echo.HandlerFunc {
 		id := c.Param("id")
 		user, err := models.GetUserById(id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
+			return c.JSON(http.StatusNotFound, models.JSONErrorResponse{ Code: http.StatusNotFound, Message: fmt.Sprintf("User not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, user)
@@ -37,16 +37,16 @@ func UpdateUser() echo.HandlerFunc {
 		id := c.Param("id")
 		var req models.User
 		if err := c.Bind(&req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing request body: %v", err))
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{ Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing request body for user: %v", err), Errors: []string{err.Error()}})
 		}
 
 		user, err := models.GetUserById(id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
+			return c.JSON(http.StatusNotFound, models.JSONErrorResponse{ Code: http.StatusNotFound, Message: fmt.Sprintf("User not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
 		if err := user.Update(&req); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error updating user: %v", err))
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{ Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error updating user: %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, user)
@@ -58,7 +58,7 @@ func DeleteUser() echo.HandlerFunc {
 		id := c.Param("id")
 		user, err := models.GetUserById(id)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User not found. Cause -> %v", err))
+			return c.JSON(http.StatusNotFound, models.JSONErrorResponse{ Code: http.StatusNotFound, Message: fmt.Sprintf("User not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
 		defer func () {
@@ -70,7 +70,7 @@ func DeleteUser() echo.HandlerFunc {
 
 		juser, err := user.ToUser()
 		if err != nil {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Errorf("User could not be converted. Cause -> %v", err))
+			return c.JSON(http.StatusNotFound, models.JSONErrorResponse{ Code: http.StatusNotFound, Message: fmt.Sprintf("User could not be converted. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
 		return c.JSON(http.StatusOK, juser)

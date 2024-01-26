@@ -22,7 +22,7 @@ func UserExists(email string) bool {
 	statement := "SELECT * FROM users WHERE email = $1"
 	var user DbUser
 
-	err := db.Select(user, statement, email)
+	err := db.Select(&user, statement, email)
 	return err != nil
 }
 
@@ -72,8 +72,7 @@ func GetUserFromEmail(email string) (*DbUser, error) {
 	var user DbUser
 	statement := "SELECT id, username, email, password, created, updated FROM users WHERE email = $1"
 
-	err := db.Select(&user, statement, email)
-
+	err := db.Get(&user, statement, email)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +84,7 @@ func GetUserById(id string) (*DbUser, error) {
 	var user DbUser
 	statement := "SELECT id, username, email, password, created, updated FROM users WHERE id = $1"
 
-	err := db.Select(&user, statement, id)
-
+	err := db.Get(&user, statement, id)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +96,7 @@ func GetUserFromUsername(username string) (*DbUser, error) {
 	var user DbUser
 	statement := "SELECT id, username, email, password, created, updated FROM users WHERE username = $1"
 
-	err := db.Select(&user, statement, username)
+	err := db.Get(&user, statement, username)
 
 	if err != nil {
 		return nil, err
@@ -108,7 +106,7 @@ func GetUserFromUsername(username string) (*DbUser, error) {
 }
 
 func GetAllUsers() ([]*DbUser, error) {
-	var users []*DbUser
+	var users []*DbUser = make([]*DbUser, 0)
 	statement := "SELECT id, username, email, password, created, updated FROM users"
 
 	err := db.Select(&users, statement)
@@ -121,7 +119,7 @@ func GetAllUsers() ([]*DbUser, error) {
 }
 
 func GetUsersByRole(role Role) ([]*DbUser, error) {
-	var users []*DbUser
+	var users []*DbUser = make([]*DbUser, 0)
 	statement := "SELECT id, username, email, password, created, updated FROM users WHERE role = $1"
 
 	err := db.Select(&users, statement, role)
@@ -134,7 +132,7 @@ func GetUsersByRole(role Role) ([]*DbUser, error) {
 }
 
 func (user *DbUser) GenerateToken() (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodES512, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		"sub": user.Id,
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	 })
@@ -260,10 +258,9 @@ func (user *DbUser) Delete() error {
 func (u *DbUser) ToUser() (*User, error) {
 	role := Role{}
 
-	statement := "SELECT roleid FROM users_roles WHERE id = $1"
+	statement := "SELECT r.id as id, r.role as name FROM users u JOIN users_roles ur ON u.id = ur.userid JOIN roles r ON ur.roleid = r.id WHERE u.id = $1"
 
-	err := db.Select(&role, statement, u.Id)
-
+	err := db.Get(&role, statement, u.Id)
 	if err != nil {
 		return nil, err
 	}

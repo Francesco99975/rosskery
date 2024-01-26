@@ -39,7 +39,7 @@ func (v *Visit) Archive() error {
 }
 
 func GetVisits() ([]Visit, error) {
-	var visits []Visit
+	var visits []Visit = make([]Visit, 0)
 
 	statement := `SELECT * FROM visits`
 
@@ -53,7 +53,7 @@ func GetVisits() ([]Visit, error) {
 }
 
 func GetVisitsFromDate(date time.Time) ([]Visit, error) {
-	var visits []Visit
+	var visits []Visit = make([]Visit, 0)
 
 	statement := `SELECT * FROM visits WHERE date >= $1 ORDER BY date ASC`
 
@@ -67,7 +67,7 @@ func GetVisitsFromDate(date time.Time) ([]Visit, error) {
 }
 
 func GetVisitsFromIp(ip string) ([]Visit, error) {
-	var visits []Visit
+	var visits []Visit = make([]Visit, 0)
 
 	statement := `SELECT * FROM visits WHERE ip = $1 ORDER BY date ASC`
 
@@ -97,7 +97,7 @@ func CountUniqueIps() (int, error) {
 func GetVisitsByMostViews() ([]Visit, error) {
 	statement := `SELECT * FROM visits ORDER BY views DESC`
 
-	var visits []Visit
+	var visits []Visit = make([]Visit, 0)
 
 	err := db.Select(&visits, statement)
 
@@ -111,7 +111,7 @@ func GetVisitsByMostViews() ([]Visit, error) {
 func GetVisitsByMostDuration() ([]Visit, error) {
 	statement := `SELECT * FROM visits ORDER BY duration DESC`
 
-	var visits []Visit
+	var visits []Visit = make([]Visit, 0)
 
 	err := db.Select(&visits, statement)
 	if err != nil {

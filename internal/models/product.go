@@ -24,7 +24,7 @@ func ProductExists(name string) bool {
 	statement := "SELECT * FROM products WHERE name = $1"
 	var product Product
 
-	err := db.Select(product, statement, name)
+	err := db.Get(&product, statement, name)
 
 	return err != nil
 }
@@ -64,7 +64,7 @@ func CreateProduct(name string, description string, price int, image string, cat
 }
 
 func GetProducts() ([]Product, error) {
-	var products []Product
+	var products []Product = make([]Product, 0)
 
 	statement := "SELECT * FROM products"
 
@@ -80,7 +80,7 @@ func GetProduct(id string) (*Product, error) {
 	statement := "SELECT * FROM products WHERE id = $1"
 	var product Product
 
-	err := db.Select(product, statement, id)
+	err := db.Get(&product, statement, id)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func GetProduct(id string) (*Product, error) {
 }
 
 func GetProductsByCategory(categoryId string) ([]Product, error) {
-	var products []Product
+	var products []Product = make([]Product, 0)
 
 	statement := "SELECT * FROM products WHERE category = $1"
 

@@ -11,7 +11,7 @@ func CategoryExists(name string) bool {
 	statement := "SELECT * FROM categories WHERE name = $1"
 	var category Category
 
-	err := db.Select(category, statement, name)
+	err := db.Get(&category, statement, name)
 	return err != nil
 }
 
@@ -41,7 +41,7 @@ func CreateCategory(name string) (*Category, error) {
 
 
 func GetCategories() ([]Category, error) {
-	var categories []Category
+	var categories []Category = make([]Category, 0)
 
 	statement := "SELECT * FROM categories"
 
@@ -59,7 +59,7 @@ func GetCategory(id string) (*Category, error) {
 
 	statement := "SELECT * FROM categories WHERE id = $1"
 
-	err := db.Select(&category, statement, id)
+	err := db.Get(&category, statement, id)
 
 	if err != nil {
 		return nil, err

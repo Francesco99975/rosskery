@@ -27,3 +27,9 @@ type OrderDto struct {
 	Address string `json:"address"`
 	Phone string `json:"phone"`
 }
+
+type JSONErrorResponse struct {
+	Code int `json:"code"`
+	Message string `json:"message"`
+	Errors []string `json:"errors"`
+}
