@@ -106,7 +106,15 @@ CREATE TABLE IF NOT EXISTS customers(
 
 SELECT apply_update_trigger('customers');
 
-CREATE TYPE IF NOT EXISTS PAYMENT AS ENUM ('cash', 'stripe', 'paypal');
+
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment') THEN
+        CREATE TYPE PAYMENT AS ENUM ('cash', 'stripe', 'paypal');
+    END IF;
+END$$;
+
 
 CREATE TABLE IF NOT EXISTS orders(
   id TEXT NOT NULL UNIQUE,
