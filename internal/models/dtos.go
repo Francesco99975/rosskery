@@ -21,6 +21,7 @@ type PurchasedItem struct {
 type OrderDto struct {
 	PurchasedItems []PurchasedItem `json:"purchasedItems"`
 	Pickuptime time.Time `json:"pickuptime"`
+	Method PaymentMethod `json:"method"`
 	Fullname string `json:"fullname"`
 	Email string `json:"email"`
 	Address string `json:"address"`

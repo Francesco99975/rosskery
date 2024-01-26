@@ -38,7 +38,7 @@ func IssueOrder() echo.HandlerFunc {
 			}
 		}
 
-		order, err := models.CreateOrder(customer.Id, payload.Pickuptime, payload.PurchasedItems)
+		order, err := models.CreateOrder(customer.Id, payload.Pickuptime, payload.PurchasedItems, payload.Method)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error creating order: %v", err))
 		}

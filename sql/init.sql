@@ -106,11 +106,14 @@ CREATE TABLE IF NOT EXISTS customers(
 
 SELECT apply_update_trigger('customers');
 
+CREATE TYPE IF NOT EXISTS PAYMENT AS ENUM ('cash', 'stripe', 'paypal');
+
 CREATE TABLE IF NOT EXISTS orders(
   id TEXT NOT NULL UNIQUE,
   customer TEXT NOT NULL,
   pickuptime TIMESTAMP NOT NULL,
   fulfilled BOOLEAN NOT NULL DEFAULT false,
+  method PAYMENT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   updated TIMESTAMP NOT NULL DEFAULT NOW(),
   CONSTRAINT fk_csm

@@ -119,25 +119,33 @@ func (p *Purchase) Delete() (*Purchase, error) {
 	return p, nil
 }
 
+type PaymentMethod string
+
+const (
+	CASH PaymentMethod = "cash"
+	STRIPE PaymentMethod = "stripe"
+	PAYPAL PaymentMethod = "paypal"
+)
 type Order struct {
 	Id string `json:"id"`
 	Customer Customer `json:"customer"`
 	Purchases []Purchase `json:"purchases"`
 	Pickuptime time.Time `json:"pickuptime"`
 	Fulfilled bool `json:"fulfilled"`
+	Method string `json:"method"`
 	Created time.Time `json:"created"`
 	Updated time.Time `json:"updated"`
 }
 
-func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem) (*Order, error) {
-	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled) VALUES ($1, $2, $3, $4)"
+func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
+	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled, method) VALUES ($1, $2, $3, $4, $5)"
 
 	customer, err := GetCustomer(customerId)
 	if err != nil {
 		return nil, err
 	}
 
-	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *customer, Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false}
+	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *customer, Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false, Method: string(method)}
 
 	tx := db.MustBegin()
 
