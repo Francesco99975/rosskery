@@ -20,7 +20,6 @@ func main() {
 	// Create a root ctx and a CancelFunc which can be used to cancel retentionMap goroutine
 	rootCtx := context.Background()
 	ctx, cancel := context.WithCancel(rootCtx)
-
 	defer cancel()
 
 	port := os.Getenv("PORT")
@@ -29,7 +28,7 @@ func main() {
 
 	e := createRouter(ctx)
 
-	go func ()  {
+	go func() {
 		fmt.Printf("Running Server on port %s", port)
 		e.Logger.Fatal(e.Start(":" + port))
 	}()

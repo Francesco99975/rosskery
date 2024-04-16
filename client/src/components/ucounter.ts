@@ -1,61 +1,66 @@
-export class UCounter extends HTMLElement {
+import { LitElement, html, css } from "lit";
+import { property } from "lit/decorators.js";
+
+export class UCounter extends LitElement {
+  @property({ type: String })
   idd: string = "";
+
+  @property({ type: Number })
   min: number = 0;
+
+  @property({ type: Number })
   value: number = 0;
 
-  constructor() {
-    super();
+  static styles = css`
+    div.flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      width: 100%;
+    }
 
-    this.idd = this.getAttribute("idd")!;
+    button {
+      border-width: 4px;
+      width: 3rem;
+      height: 3rem;
+      --tw-border-opacity: 1;
+      border-color: rgb(var(--color-primary) / var(--tw-border-opacity));
+      border-style: solid;
+      border-radius: 9999px;
+      text-align: center;
+      --tw-text-opacity: 1;
+      color: rgb(var(--color-primary) / var(--tw-text-opacity));
+      font-weight: 700;
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+  `;
 
-    this.min = +this.getAttribute("min")!;
-
-    this.value = +this.getAttribute("value")!;
-  }
-
-  connectedCallback() {
-    this.render();
-  }
-
-  increase() {
+  private _increase() {
     this.value = +this.value + 1;
-    console.log("inc", this.value);
-    this.render();
   }
 
-  decrease() {
+  private _decrease() {
     if (+this.value > +this.min) {
       this.value = +this.value - 1;
-      console.log("dec", this.value);
-      this.render();
     }
   }
 
-  render() {
-    this.innerHTML = `
-      <div class="flex items-center justify-evenly w-full">
+  protected render() {
+    return html`
+      <div class="flex">
         <input
           id="${"qty" + this.idd}"
           min="${this.min.toString()}"
           value="${this.value.toString()}"
           type="hidden"
         />
-        <button id="${
-          "dec" + this.idd
-        }" class="border-4 w-12 h-12 border-primary border-solid rounded-full text-center text-primary font-bold text-3xl">-</button>
-        <span class="text-xl md:text-3xl font-bold p-2 text-center">${
-          this.value
-        }</span>
-        <button id="${
-          "inc" + this.idd
-        }" class="border-4 w-12 h-12 border-primary border-solid rounded-full text-center text-primary font-bold text-3xl">+</button>
+        <button id="${"dec" + this.idd}" @click="${this._decrease}">-</button>
+        <span class="text-xl md:text-3xl font-bold p-2 text-center"
+          >${this.value}</span
+        >
+        <button id="${"inc" + this.idd}" @click="${this._increase}">+</button>
       </div>
     `;
-    document
-      ?.getElementById("dec" + this.idd)
-      ?.addEventListener("click", this.decrease.bind(this));
-    document
-      ?.getElementById("inc" + this.idd)
-      ?.addEventListener("click", this.increase.bind(this));
   }
 }

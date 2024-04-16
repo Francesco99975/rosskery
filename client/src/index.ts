@@ -15,6 +15,10 @@ declare global {
     conn: WebSocket;
     visited: boolean;
   }
+
+  interface HTMLElementTagNameMap {
+    "u-counter": UCounter;
+  }
 }
 
 window.htmx = htmx;
