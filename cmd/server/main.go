@@ -9,6 +9,7 @@ import (
 
 	"github.com/Francesco99975/rosskery/cmd/boot"
 	"github.com/Francesco99975/rosskery/internal/models"
+	"github.com/Francesco99975/rosskery/internal/storage"
 )
 
 func main() {
@@ -25,6 +26,8 @@ func main() {
 	port := os.Getenv("PORT")
 
 	models.Setup(os.Getenv("DSN"))
+
+	storage.ValkeySetup(ctx)
 
 	e := createRouter(ctx)
 

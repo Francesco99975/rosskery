@@ -1,6 +1,34 @@
 version: "3.7"
 
 services:
+   rosdb:
+    image: postgres:15.3-alpine
+    container_name: rosdb
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+    networks:
+      - rosskerynet
+    env_file:
+      - dbp.env
+    ports:
+      - "5438:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      - rskpgdata:/var/lib/postgresql/data
+      - rskpgconf:/etc/postgresql
+      - rskpglog:/var/log/postgresql
+  valset:
+    image: valkey:7.2-alpine
+    container_name: valset
+    restart: always
+    ports:
+      - "6379:6379"
+    env_file:
+      - vlp.env
+    command: valkey-server --save 20 1 --loglevel warning --requirepass ${VALKEY_PASSWORD}
+    volumes:
+      - rskset:/data
   rosskery:
     container_name: rosskery
     image: rosskery
@@ -31,4 +59,12 @@ volumes:
   rosskerypgconf:
     driver: local
   rosskerypglog:
+    driver: local
+  rskpgdata:
+    driver: local
+  rskpgconf:
+    driver: local
+  rskpglog:
+    driver: local
+  rskset:
     driver: local

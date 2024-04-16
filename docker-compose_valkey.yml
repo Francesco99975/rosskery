@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  valset:
+    image: valkey/valkey:7.2-alpine
+    container_name: valset
+    restart: always
+    ports:
+      - "6379:6379"
+    command: valkey-server --save 20 1 --loglevel warning
+    volumes:
+      - rskset:/data
+volumes:
+  rskset:
+    driver: local

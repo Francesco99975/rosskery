@@ -36,9 +36,12 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	go wsManager.Run()
 
+	e.Use(middlewares.IsOnline(ctx))
+
 	e.GET("/", controllers.Index())
 	e.GET("/gallery", controllers.Gallery())
 	e.GET("/photos", controllers.Photos())
+	e.GET("/setting", api.GetSetting(ctx))
 
 	e.POST("/login", api.Login(wsManager))
 
@@ -64,6 +67,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin.GET("/users", api.Users())
 	admin.GET("/users/:id", api.User())
 	admin.DELETE("/users/:id", api.DeleteUser())
+	admin.PUT("/setting", api.SetSetting(ctx))
 
 	e.HTTPErrorHandler = serverErrorHandler
 
