@@ -20,6 +20,15 @@ module.exports = {
         transparent: "transparent",
         current: "currentColor",
       },
+      keyframes: {
+        pac: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
+      },
+      animation: {
+        pacman: "pac 23s linear infinite",
+      },
     },
   },
   plugins: [],

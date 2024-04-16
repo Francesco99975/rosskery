@@ -36,12 +36,9 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	go wsManager.Run()
 
-	e.Use(middlewares.IsOnline(ctx))
-
-	e.GET("/", controllers.Index())
-	e.GET("/gallery", controllers.Gallery())
-	e.GET("/photos", controllers.Photos())
-	e.GET("/setting", api.GetSetting(ctx))
+	e.GET("/", controllers.Index(ctx), middlewares.IsOnline(ctx))
+	e.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
+	e.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
 
 	e.POST("/login", api.Login(wsManager))
 
@@ -67,7 +64,10 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin.GET("/users", api.Users())
 	admin.GET("/users/:id", api.User())
 	admin.DELETE("/users/:id", api.DeleteUser())
+	admin.GET("/setting", api.GetSetting(ctx))
 	admin.PUT("/setting", api.SetSetting(ctx))
+	admin.GET("/message", api.GetMessage(ctx))
+	admin.PUT("/message", api.SetMessage(ctx))
 
 	e.HTTPErrorHandler = serverErrorHandler
 
@@ -79,7 +79,7 @@ func serverErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
-	data := models.GetDefaultSite("Error")
+	data := models.GetDefaultSite("Error", context.Background())
 
 	buf := bytes.NewBuffer(nil)
 	if code < 500 {

@@ -12,7 +12,7 @@ import "bytes"
 
 import "github.com/Francesco99975/rosskery/views/icons"
 
-func Header() templ.Component {
+func Header(message string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -105,11 +105,30 @@ func Header() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a><script>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var10 := `
+		if len(message) > 0 {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"mbg\" class=\"w-full bg-primary whitespace-nowrap overflow-hidden flex justify-center items-center fixed top-24 left-0 z-30\"><span id=\"mtx\" class=\"p-1 text-sm font-bold text-std animate-pacman\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string = message
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var11 := `
 
             var burgerMenu = document.getElementById('burgerMenu');
             var navLinks = document.getElementById('mobileNavLinks');
@@ -138,8 +157,22 @@ func Header() templ.Component {
                 }
             });
 
+						 // Adjusting span width to wrap the text continuously
+						const span = document.getElementById('mtx');
+						const div = document.getElementById('mbg');
+						if(div && span) {
+							const divWidth = div.offsetWidth;
+							const spanWidth = span.offsetWidth;
+							const clonesNeeded = Math.ceil(divWidth / spanWidth) + 1;
+
+							for (let i = 0; i < clonesNeeded; i++) {
+									const clone = span.cloneNode(true);
+									span.parentNode.appendChild(clone);
+							}
+						}
+
         `
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

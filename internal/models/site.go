@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"github.com/Francesco99975/rosskery/internal/storage"
+)
 
 type SEO struct {
 	Description string
@@ -11,13 +16,25 @@ type Site struct {
 	Title    string
 	Metatags SEO
 	Year     int
+	Message  string
 }
 
-func GetDefaultSite(title string) Site {
+func GetDefaultSite(title string, ctx context.Context) Site {
+	val, err := storage.Valkey.Get(ctx, string(storage.Message)).Result()
+	if err != nil {
+		return Site{
+			AppName:  "Rosskery",
+			Title:    title,
+			Metatags: SEO{Description: "Sweets store", Keywords: "shop,pastries,sweets,cookies,biscuits,buy,store,purchase"},
+			Year:     time.Now().Year(),
+		}
+	}
+
 	return Site{
 		AppName:  "Rosskery",
 		Title:    title,
 		Metatags: SEO{Description: "Sweets store", Keywords: "shop,pastries,sweets,cookies,biscuits,buy,store,purchase"},
 		Year:     time.Now().Year(),
+		Message:  val,
 	}
 }

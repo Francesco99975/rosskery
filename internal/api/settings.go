@@ -14,6 +14,10 @@ type OperationResult struct {
 	value bool
 }
 
+type MessageUpdate struct {
+	message string
+}
+
 func SetSetting(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var payload models.Setter
@@ -45,5 +49,33 @@ func GetSetting(ctx context.Context) echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, OperationResult{value: val})
+	}
+}
+
+func SetMessage(ctx context.Context) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var payload MessageUpdate
+
+		if err := c.Bind(&payload); err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing request body for setting value: %v", err), Errors: []string{err.Error()}})
+		}
+
+		if err := storage.Valkey.Set(ctx, string(storage.Message), payload.message, 0).Err(); err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while setting value: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, OperationResult{value: true})
+	}
+}
+
+func GetMessage(ctx context.Context) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		val, err := storage.Valkey.Get(ctx, string(storage.Message)).Result()
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while getting setting: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, MessageUpdate{message: val})
 	}
 }

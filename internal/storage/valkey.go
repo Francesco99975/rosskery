@@ -41,4 +41,8 @@ func ValkeySetup(ctx context.Context) {
 	if err := Valkey.Set(ctx, string(Operative), true, 0).Err(); err != nil {
 		panic(err)
 	}
+
+	if err := Valkey.Set(ctx, string(Message), "", 0).Err(); err != nil {
+		panic(err)
+	}
 }

@@ -1,20 +1,21 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/chai2010/webp"
-	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/internal/helpers"
+	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/views"
+	"github.com/chai2010/webp"
 
 	"github.com/labstack/echo/v4"
 )
 
-func Gallery() echo.HandlerFunc {
+func Gallery(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cache := models.GetCachePhotos()
 		var images []models.Photo
@@ -73,10 +74,10 @@ func Gallery() echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Could not load images in gallery. Error: %s", err.Error()))
 		}
 
-		html, err := helpers.GeneratePage(views.Gallery(models.GetDefaultSite("Gallery"), loadedImages))
+		html, err := helpers.GeneratePage(views.Gallery(models.GetDefaultSite("Gallery", ctx), loadedImages))
 
 		if err != nil {
-			echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
 		}
 
 		return c.Blob(200, "text/html; charset=utf-8", html)
@@ -95,7 +96,7 @@ func Photos() echo.HandlerFunc {
 		html, err := helpers.GeneratePage(views.Photos(loadedImages))
 
 		if err != nil {
-			echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
 		}
 
 		return c.Blob(200, "text/html; charset=utf-8", html)

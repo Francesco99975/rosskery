@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
@@ -9,9 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Index() echo.HandlerFunc {
+func Index(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		data := models.GetDefaultSite("Home")
+		data := models.GetDefaultSite("Home", ctx)
 
 		html, err := helpers.GeneratePage(views.Index(data))
 
