@@ -39,6 +39,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.GET("/", controllers.Index(ctx), middlewares.IsOnline(ctx))
 	e.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
 	e.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
+	e.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))
 
 	e.POST("/login", api.Login(wsManager))
 

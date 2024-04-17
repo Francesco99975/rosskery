@@ -3,6 +3,7 @@ package views
 import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/views/components"
+import "github.com/Francesco99975/rosskery/views/icons"
 
 templ Index(site models.Site) {
 	@layouts.CoreHTML(site) {
@@ -20,14 +21,37 @@ templ Index(site models.Site) {
 					>
 						Explore Collection
 					</a>
+					<div class="text-center text-std flex justify-evenly p-2 md:w-[30%] w-[55%] my-1">
+						<a href="https://facebook.com" class="bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1">
+							@icons.FB("#F1E1E4")
+						</a>
+						<a href="https://instagram.com" class="bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1">
+							@icons.IG("#F1E1E4")
+						</a>
+					</div>
+					<a href="mailto:" class="text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center">email@gmail.com</a>
 				</div>
 			</section>
-			<section class="grid md:grid-cols-3 gap-6 p-6 w-full bg-primary">
-				@components.ProductItem("asdd")
-				@components.ProductItem("sdfgsf")
-				@components.ProductItem("sdfsdfsg")
-				@components.ProductItem("sdgshsrhrh")
-				@components.ProductItem("segsdhgshsr")
+			// Load after first draw
+			<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
+				<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">Featured</h2>
+				<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
+					@components.ProductItem("asdd")
+					@components.ProductItem("sdfgsf")
+					@components.ProductItem("sdfsdfsg")
+					@components.ProductItem("sdgshsrhrh")
+					@components.ProductItem("segsdhgshsr")
+				</div>
+			</section>
+			<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
+				<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">New Arrivals</h2>
+				<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
+					@components.ProductItem("asdd")
+					@components.ProductItem("sdfgsf")
+					@components.ProductItem("sdfsdfsg")
+					@components.ProductItem("sdgshsrhrh")
+					@components.ProductItem("segsdhgshsr")
+				</div>
 			</section>
 		</main>
 	}
