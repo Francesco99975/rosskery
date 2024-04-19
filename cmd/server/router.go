@@ -42,6 +42,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))
 
 	e.POST("/login", api.Login(wsManager))
+	e.POST("/check", api.CheckToken(wsManager))
 
 	admin := e.Group("/admin")
 	admin.Use(middlewares.IsAuthenticatedAdmin())

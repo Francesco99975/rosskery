@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/Francesco99975/rosskery/internal/helpers"
 	"github.com/Francesco99975/rosskery/internal/models"
 )
 
@@ -86,8 +87,29 @@ func Login(cm *models.ConnectionManager) echo.HandlerFunc {
 	}
 }
 
-func Logout() echo.HandlerFunc {
+type TokenInfo struct {
+	Token string `json:"token"`
+}
+
+type CheckResponse struct {
+	Valid bool   `json:"valid"`
+	Otp   string `json:"otp"`
+}
+
+func CheckToken(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return nil
+		var payload TokenInfo
+		if err := c.Bind(&payload); err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: "Invalid request body", Errors: []string{err.Error()}})
+		}
+
+		_, err := helpers.ValidateToken(payload.Token)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{Code: http.StatusUnauthorized, Message: fmt.Sprintf("Unauthorized. Cause -> %v", err)})
+		}
+
+		otp := cm.GenerateNewOtp()
+
+		return c.JSON(http.StatusOK, CheckResponse{Valid: true, Otp: otp})
 	}
 }

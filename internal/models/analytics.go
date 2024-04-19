@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,7 +19,7 @@ import (
 )
 
 const (
-	socketBufferSize = 1024
+	socketBufferSize  = 1024
 	messageBufferSize = 4096
 )
 
@@ -35,23 +37,31 @@ func checkOrigin(r *http.Request) bool {
 	// Grab the request origin
 	origin := r.Header.Get("Origin")
 
+	if len(origin) < 1 {
+		ua := r.Header.Get("User-Agent")
+		if strings.Contains(ua, "Dart") {
+			return true
+		}
+	}
+
 	switch origin {
 	// Update this to HTTPS
 	case os.Getenv("HOST"):
 		return true
 	default:
+		log.Info(fmt.Sprintf("Origin %s not allowed", origin))
 		return false
 	}
 }
 
-var upgrader = websocket.Upgrader{ CheckOrigin: checkOrigin, ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
+var upgrader = websocket.Upgrader{CheckOrigin: checkOrigin, ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
 type Analytics struct {
 	visits map[string]*Visit
-	lock sync.Mutex
+	lock   sync.Mutex
 }
 
-var analizer = Analytics { visits: make(map[string]*Visit) };
+var analizer = Analytics{visits: make(map[string]*Visit)}
 
 func (anl *Analytics) addVisit(visit Visit) {
 	anl.lock.Lock()
@@ -59,13 +69,13 @@ func (anl *Analytics) addVisit(visit Visit) {
 	anl.visits[visit.Id] = &visit
 }
 
-func (anl * Analytics) updateViews(id string) {
+func (anl *Analytics) updateViews(id string) {
 	anl.lock.Lock()
 	defer anl.lock.Unlock()
 	anl.visits[id].Views += 1
 }
 
-func (anl * Analytics) archiveVisit(id string) {
+func (anl *Analytics) archiveVisit(id string) {
 	anl.lock.Lock()
 	defer anl.lock.Unlock()
 
@@ -83,10 +93,10 @@ func (anl * Analytics) archiveVisit(id string) {
 }
 
 type ConnectionManager struct {
-	clients map[*Client]bool
-	connect chan *Client
+	clients    map[*Client]bool
+	connect    chan *Client
 	disconnect chan *Client
-	handlers map[string]EventHandler
+	handlers   map[string]EventHandler
 	// otps is a map of allowed OTP to accept connections from
 	otps RetentionMap
 }
@@ -96,17 +106,15 @@ func (cm *ConnectionManager) GenerateNewOtp() string {
 }
 
 func NewManager(ctx context.Context) *ConnectionManager {
-	cm :=  &ConnectionManager{
-		connect: make(chan *Client),
+	cm := &ConnectionManager{
+		connect:    make(chan *Client),
 		disconnect: make(chan *Client),
-		clients: make(map[*Client]bool),
-		handlers: make(map[string]EventHandler),
-		otps: NewRetentionMap(ctx, 5*time.Second),
+		clients:    make(map[*Client]bool),
+		handlers:   make(map[string]EventHandler),
+		otps:       NewRetentionMap(ctx, 5*time.Second),
 	}
 
 	cm.setupEventHandlers()
-
-
 
 	return cm
 }
@@ -115,6 +123,7 @@ func NewManager(ctx context.Context) *ConnectionManager {
 func (m *ConnectionManager) setupEventHandlers() {
 	m.handlers[EventVisit] = SendVisitHandler
 	m.handlers[EventView] = SendViewHandler
+	m.handlers[EventAuthAdmin] = SendOtpHandler
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
@@ -127,28 +136,28 @@ func (m *ConnectionManager) routeEvent(event Event, c *Client) error {
 		}
 		return nil
 	} else {
-		return  errors.New("this event type is not supported")
+		return errors.New("this event type is not supported")
 	}
 }
 
 func (cm *ConnectionManager) Run() {
 	for {
 		select {
-		case client := <- cm.connect:
+		case client := <-cm.connect:
 			cm.clients[client] = true
-		case client := <- cm.disconnect:
+		case client := <-cm.disconnect:
 			if _, ok := cm.clients[client]; ok {
-					close(client.egress)
-					analizer.archiveVisit(client.id)
-					client.socket.Close()
-					delete(cm.clients, client)
+				close(client.egress)
+				analizer.archiveVisit(client.id)
+				client.socket.Close()
+				delete(cm.clients, client)
 			}
 		}
 	}
 }
 
 func (cm *ConnectionManager) ServeWS(c echo.Context) error {
-	socket, err := upgrader.Upgrade(c.Response() , c.Request(), nil)
+	socket, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		log.Fatal("Serve HTTP Sockets Error: ", err)
 		return err
@@ -157,13 +166,13 @@ func (cm *ConnectionManager) ServeWS(c echo.Context) error {
 	log.Info("Connection Received")
 
 	client := &Client{
-		id: uuid.NewV4().String(),
-		socket: socket,
-		egress: make(chan Event, messageBufferSize),
+		id:      uuid.NewV4().String(),
+		socket:  socket,
+		egress:  make(chan Event, messageBufferSize),
 		manager: cm,
-		room: "base",
-		sauce: c.Request().Header.Get("Referer"),
-		agent: c.Request().Header.Get("User-Agent"),
+		room:    "base",
+		sauce:   c.Request().Header.Get("Referer"),
+		agent:   c.Request().Header.Get("User-Agent"),
 	}
 
 	cm.connect <- client
@@ -174,6 +183,7 @@ func (cm *ConnectionManager) ServeWS(c echo.Context) error {
 
 	return nil
 }
+
 type Client struct {
 	id string
 
@@ -190,8 +200,8 @@ type Client struct {
 	agent string
 }
 
-func (client * Client) read() {
-	defer func () {
+func (client *Client) read() {
+	defer func() {
 		client.manager.disconnect <- client
 	}()
 
@@ -208,6 +218,7 @@ func (client * Client) read() {
 
 	for {
 		_, payload, err := client.socket.ReadMessage()
+		log.Infof("payload: %v", string(payload))
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Errorf("error reading message: %v", err)
@@ -229,17 +240,17 @@ func (client * Client) read() {
 	}
 }
 
-func (client * Client) write() {
+func (client *Client) write() {
 	ticker := time.NewTicker(pingInterval)
 
-	defer func () {
-			ticker.Stop()
-		 	client.manager.disconnect <- client
+	defer func() {
+		ticker.Stop()
+		client.manager.disconnect <- client
 	}()
 
 	for {
 		select {
-			case message, ok := <-client.egress:
+		case message, ok := <-client.egress:
 			// Ok will be false Incase the egress channel is closed
 			if !ok {
 				// Manager has closed this connection channel, so communicate that to frontend
@@ -278,4 +289,3 @@ func (client *Client) pongHandler(pongMsg string) error {
 	log.Print("pong")
 	return client.socket.SetReadDeadline(time.Now().Add(pongWait))
 }
-
