@@ -63,6 +63,12 @@ type Analytics struct {
 
 var analizer = Analytics{visits: make(map[string]*Visit)}
 
+func CurrentVisitors() int {
+	analizer.lock.Lock()
+	defer analizer.lock.Unlock()
+	return len(analizer.visits)
+}
+
 func (anl *Analytics) addVisit(visit Visit) {
 	anl.lock.Lock()
 	defer anl.lock.Unlock()
@@ -131,7 +137,7 @@ func (m *ConnectionManager) routeEvent(event Event, c *Client) error {
 	// Check if Handler is present in Map
 	if handler, ok := m.handlers[event.Type]; ok {
 		// Execute the handler and return any err
-		if err := handler(event, c, &analizer); err != nil {
+		if err := handler(event, c); err != nil {
 			return err
 		}
 		return nil

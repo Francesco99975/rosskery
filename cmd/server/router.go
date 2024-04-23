@@ -47,6 +47,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin := e.Group("/admin")
 	admin.Use(middlewares.IsAuthenticatedAdmin())
 	admin.POST("/signup", api.Signup())
+	admin.GET("/visits", api.GetVisits())
 	admin.GET("/categories", api.Categories())
 	admin.POST("/categories", api.CreateCategory())
 	admin.DELETE("/categories/:id", api.DeleteCategory())

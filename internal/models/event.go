@@ -7,24 +7,24 @@ import (
 )
 
 type Event struct {
-	Type string `json:"type"`
+	Type    string          `json:"type"`
 	Payload json.RawMessage `json:"payload"`
 }
 
-type EventHandler func(event Event, c *Client, anl *Analytics) error
+type EventHandler func(event Event, c *Client) error
 
 const (
-	EventVisit = "visit"
-	EventView = "view"
-	EventAuthAdmin = "authadmin"
+	EventVisit       = "visit"
+	EventView        = "view"
+	EventAuthAdmin   = "authadmin"
 	EventUpdateAdmin = "uadmin"
 )
 
 type SendAdminUpdate struct {
-	Visits  map[string]*Visit
+	Visits map[string]*Visit
 }
 
-func SendVisitHandler(event Event, client *Client, anl *Analytics) error{
+func SendVisitHandler(event Event, client *Client) error {
 	var source string
 	if len(client.sauce) > 0 {
 		source = client.sauce
@@ -32,7 +32,7 @@ func SendVisitHandler(event Event, client *Client, anl *Analytics) error{
 		source = "direct"
 	}
 
-	analizer.addVisit(Visit{ Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: source, Agent: client.agent, Date: time.Now() })
+	analizer.addVisit(Visit{Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: source, Agent: client.agent, Date: time.Now()})
 
 	update := SendAdminUpdate{
 		Visits: analizer.visits,
@@ -58,8 +58,7 @@ func SendVisitHandler(event Event, client *Client, anl *Analytics) error{
 
 }
 
-
-func SendViewHandler(event Event, client *Client, anl *Analytics) error {
+func SendViewHandler(event Event, client *Client) error {
 	analizer.updateViews(client.id)
 
 	update := SendAdminUpdate{
@@ -86,10 +85,10 @@ func SendViewHandler(event Event, client *Client, anl *Analytics) error {
 }
 
 type SendOtp struct {
-		OTP string `json:"otp"`
+	OTP string `json:"otp"`
 }
 
-func SendOtpHandler(event Event, client *Client, anl *Analytics) error {
+func SendOtpHandler(event Event, client *Client) error {
 	var payload SendOtp
 	if err := json.Unmarshal(event.Payload, &payload); err != nil {
 		return fmt.Errorf("bad payload in request: %v", err)
@@ -103,4 +102,3 @@ func SendOtpHandler(event Event, client *Client, anl *Analytics) error {
 	client.room = "admin"
 	return nil
 }
-
