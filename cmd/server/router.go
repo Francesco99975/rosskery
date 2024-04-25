@@ -92,6 +92,6 @@ func serverErrorHandler(err error, c echo.Context) {
 		_ = views.ServerError(data, err).Render(context.Background(), buf)
 	}
 
-	_ = c.Blob(200, "text/html; charset=utf-8", buf.Bytes())
+	_ = c.Blob(code, "text/html; charset=utf-8", buf.Bytes())
 
 }

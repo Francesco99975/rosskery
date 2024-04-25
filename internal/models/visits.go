@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+	"math"
+	"slices"
 	"time"
 
 	"github.com/mileusna/useragent"
@@ -127,11 +129,11 @@ func GetVisits() ([]Visit, error) {
 
 func GetVisitsByQualityAndTimeframe(quality VisitQuality, timeframe Timeframe) (Dataset, error) {
 	type VisitCount struct {
-		date  time.Time
-		count int
+		Date  time.Time
+		Count int
 	}
 
-	var resl7 []VisitCount
+	var results []VisitCount = make([]VisitCount, 0)
 	var whereStm string
 	var horizonal []string
 	var vertical []int
@@ -139,49 +141,104 @@ func GetVisitsByQualityAndTimeframe(quality VisitQuality, timeframe Timeframe) (
 	switch timeframe {
 	case L7:
 		whereStm = "WHERE date >= NOW() - INTERVAL '7' DAY"
+		for i := 6; i >= 0; i-- {
+			horizonal = append(horizonal, time.Now().AddDate(0, 0, -i).Weekday().String())
+			vertical = append(vertical, 0)
+		}
 	case PW:
 		whereStm = "WHERE date >= DATE_TRUNC('week', NOW()) - INTERVAL '7 DAY' - INTERVAL '1 DAY' AND date < DATE_TRUNC('week', NOW())"
+		offset := int(time.Now().Weekday())
+		for i := 6 + offset; i >= offset; i-- {
+			horizonal = append(horizonal, fmt.Sprint(time.Now().AddDate(0, 0, -i).Day()))
+			vertical = append(vertical, 0)
+		}
 	case L30:
 		whereStm = "WHERE date >= NOW() - INTERVAL '30' DAY"
+		for i := 30; i > 0; i-- {
+			if i%6 == 0 {
+				horizonal = append(horizonal, fmt.Sprintf("%d - %d", time.Now().AddDate(0, 0, -i).Day(), time.Now().AddDate(0, 0, (-i)+6).Day()))
+				vertical = append(vertical, 0)
+			}
+		}
 	case PM:
 		whereStm = "WHERE date >= DATE_TRUNC('month', NOW()) - INTERVAL '30 DAY' - INTERVAL '1 DAY' AND date < DATE_TRUNC('month', NOW())"
+		offset := time.Now().Day()
+		for i := 30 + offset; i > offset; i-- {
+			if i%6 == 0 {
+				horizonal = append(horizonal, fmt.Sprintf("%d - %d", time.Now().AddDate(0, 0, -i).Day(), time.Now().AddDate(0, 0, (-i)+6).Day()))
+				vertical = append(vertical, 0)
+			}
+		}
 	case L12:
 		whereStm = "WHERE date >= NOW() - INTERVAL '12' MONTH"
+		for i := 11; i >= 0; i-- {
+			horizonal = append(horizonal, time.Now().AddDate(0, -i, 0).Month().String())
+			vertical = append(vertical, 0)
+		}
 	case PY:
-		whereStm = "WHERE date >= DATE_TRUNC('year', NOW()) - INTERVAL '12 MONTH' - INTERVAL '1 MONTH' AND date < DATE_TRUNC('year', NOW()"
+		whereStm = "WHERE date >= DATE_TRUNC('year', NOW()) - INTERVAL '12 MONTH' - INTERVAL '1 MONTH' AND date < DATE_TRUNC('year', NOW())"
+		offset := int(time.Now().Month())
+		for i := 11 + offset; i >= offset; i-- {
+			horizonal = append(horizonal, time.Now().AddDate(0, -i, 0).Month().String())
+			vertical = append(vertical, 0)
+		}
 	default:
 		return Dataset{}, fmt.Errorf("Invalid timeframe: %v", timeframe)
 	}
 
 	var statement string
 	if quality == UNIQUE {
-		statement = `SELECT date, COUNT(DISTINCT ip) AS count FROM visits ` + whereStm + ` GROUP BY date ORDER BY date ASC`
+		statement = `SELECT DATE(date) AS date, COUNT(DISTINCT ip) AS count FROM visits ` + whereStm + ` GROUP BY DATE(date) ORDER BY DATE(date) ASC`
 
 	} else {
-		statement = `SELECT date, COUNT(*) AS count FROM visits ` + whereStm + ` GROUP BY date ORDER BY date ASC`
+		statement = `SELECT DATE(date) AS date, COUNT(*) AS count FROM visits ` + whereStm + ` GROUP BY DATE(date) ORDER BY DATE(date) ASC`
 	}
 
-	err := db.Select(&resl7, statement)
+	err := db.Select(&results, statement)
 	if err != nil {
 		return Dataset{}, err
 	}
 
-	accumulator := 0
-	for i := 0; i < len(resl7); i++ {
-		switch timeframe {
-		case L7, PW:
-			horizonal = append(horizonal, resl7[i].date.Weekday().String())
-			vertical = append(vertical, resl7[i].count)
-		case L30, PM:
-			accumulator += resl7[i].count
-			if i%6 == 0 {
-				horizonal = append(horizonal, fmt.Sprintf("%d - %d", resl7[i].date.AddDate(0, 0, -6).Day(), resl7[i].date.Day()))
-				vertical = append(vertical, accumulator)
-				accumulator = 0
+	switch timeframe {
+	case L7:
+		for i := 0; i < len(horizonal); i++ {
+			for j := 0; j < len(results); j++ {
+				if results[j].Date.Weekday().String() == horizonal[i] {
+					vertical[i] = results[j].Count
+				}
 			}
-		case L12, PY:
-			horizonal = append(horizonal, resl7[i].date.Month().String())
-			vertical = append(vertical, resl7[i].count)
+		}
+	case PW:
+		for i := 0; i < len(horizonal); i++ {
+			for j := 0; j < len(results); j++ {
+				if fmt.Sprint(results[j].Date.Day()) == horizonal[i] {
+					vertical[i] = results[j].Count
+				}
+			}
+		}
+	case L30, PM:
+		accumulator := 0
+		vindex := 0
+		for i := 30; i > 0; i-- {
+			for j := 0; j < len(results); j++ {
+				if results[j].Date.Day() == i {
+					accumulator += results[j].Count
+				}
+			}
+
+			if i%6 == 0 {
+				vertical[vindex] = accumulator
+				accumulator = 0
+				vindex++
+			}
+		}
+	case L12, PY:
+		for i := 0; i < len(horizonal); i++ {
+			for j := 0; j < len(results); j++ {
+				if results[j].Date.Month().String() == horizonal[i] {
+					vertical[i] = results[j].Count
+				}
+			}
 		}
 	}
 
@@ -243,9 +300,9 @@ func GetVisitsByMostViews() ([]Visit, error) {
 }
 
 func GetAverageVisitDuration() (int, error) {
-	var avg int
+	var avg float64
 
-	statement := `SELECT AVG(duration) FROM visits`
+	statement := `SELECT AVG(duration) AS avg FROM visits`
 
 	err := db.Get(&avg, statement)
 
@@ -253,7 +310,7 @@ func GetAverageVisitDuration() (int, error) {
 		return 0, err
 	}
 
-	return avg, nil
+	return int(math.Round(avg)), nil
 }
 
 func GetVisitsByMostDuration() ([]Visit, error) {
@@ -271,7 +328,7 @@ func GetVisitsByMostDuration() ([]Visit, error) {
 
 func GetVisitsWithZeroViews() (int, error) {
 	var count int
-	statement := `SELECT COUNT(*) FROM visits WHERE views = 0`
+	statement := `SELECT COUNT(*) AS count FROM visits WHERE views = 0`
 
 	err := db.Get(&count, statement)
 	if err != nil {
@@ -284,12 +341,12 @@ func GetVisitsWithZeroViews() (int, error) {
 func GetDeviceOrigins() ([]DeviceOrigin, error) {
 
 	type Extrapolator struct {
-		agent string
-		count int
+		Agent string
+		Count int
 	}
 	var extrapolation []Extrapolator = make([]Extrapolator, 0)
 
-	statement := `SELECT DISTINCT agent, Count(DISTINCT agent) as count FROM visits`
+	statement := `SELECT DISTINCT agent, Count(agent) as count FROM visits GROUP BY agent`
 
 	err := db.Select(&extrapolation, statement)
 
@@ -300,8 +357,18 @@ func GetDeviceOrigins() ([]DeviceOrigin, error) {
 	deviceOrigins := make([]DeviceOrigin, 0)
 
 	for i := 0; i < len(extrapolation); i++ {
-		ua := useragent.Parse(extrapolation[i].agent)
-		deviceOrigins = append(deviceOrigins, DeviceOrigin{DeviceSignaure: ua.OS + " / " + ua.Name, Count: extrapolation[i].count})
+		ua := useragent.Parse(extrapolation[i].Agent)
+		signature := ua.OS + " / " + ua.Name
+
+		index := slices.IndexFunc(deviceOrigins, func(deviceOrigin DeviceOrigin) bool {
+			return deviceOrigin.DeviceSignaure == signature
+		})
+
+		if index == -1 {
+			deviceOrigins = append(deviceOrigins, DeviceOrigin{DeviceSignaure: signature, Count: extrapolation[i].Count})
+		} else {
+			deviceOrigins[index].Count += extrapolation[i].Count
+		}
 	}
 
 	return deviceOrigins, nil
@@ -310,7 +377,7 @@ func GetDeviceOrigins() ([]DeviceOrigin, error) {
 func GetVisitOrigins() ([]VisitOrigin, error) {
 	var origins []VisitOrigin = make([]VisitOrigin, 0)
 
-	statement := `SELECT DISTINCT origin as sauce, Count(DISTINCT origin) as count FROM visits`
+	statement := `SELECT DISTINCT sauce, Count(sauce) as count FROM visits GROUP BY sauce`
 
 	err := db.Select(&origins, statement)
 	if err != nil {
