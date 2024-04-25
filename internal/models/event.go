@@ -20,10 +20,6 @@ const (
 	EventUpdateAdmin = "uadmin"
 )
 
-type SendAdminUpdate struct {
-	Visits map[string]*Visit
-}
-
 func SendVisitHandler(event Event, client *Client) error {
 	var source string
 	if len(client.sauce) > 0 {
@@ -34,8 +30,8 @@ func SendVisitHandler(event Event, client *Client) error {
 
 	analizer.addVisit(Visit{Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: source, Agent: client.agent, Date: time.Now()})
 
-	update := SendAdminUpdate{
-		Visits: analizer.visits,
+	update := VisitsResponse{
+		Current: len(analizer.visits),
 	}
 
 	data, err := json.Marshal(update)
@@ -61,8 +57,13 @@ func SendVisitHandler(event Event, client *Client) error {
 func SendViewHandler(event Event, client *Client) error {
 	analizer.updateViews(client.id)
 
-	update := SendAdminUpdate{
-		Visits: analizer.visits,
+	views, err := CountTotalViews()
+	if err != nil {
+		return fmt.Errorf("failed to get total views: %v", err)
+	}
+
+	update := VisitsResponse{
+		TotalViews: views,
 	}
 
 	data, err := json.Marshal(update)

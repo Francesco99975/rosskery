@@ -6,6 +6,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/labstack/gommon/log"
 	"github.com/mileusna/useragent"
 )
 
@@ -218,25 +219,33 @@ func GetVisitsByQualityAndTimeframe(quality VisitQuality, timeframe Timeframe) (
 		}
 	case L30, PM:
 		accumulator := 0
-		vindex := 0
-		for i := 30; i > 0; i-- {
+		vindex := -1
+		for i := 30; i > -6; i-- {
+
 			for j := 0; j < len(results); j++ {
-				if results[j].Date.Day() == i {
+				current := time.Now().AddDate(0, 0, -i)
+				resdate := results[j].Date
+
+				if resdate.Year() == current.Year() && resdate.Month() == current.Month() && resdate.Day() == current.Day() {
 					accumulator += results[j].Count
 				}
 			}
 
 			if i%6 == 0 {
-				vertical[vindex] = accumulator
+				if vindex > -1 {
+					vertical[vindex] = accumulator
+				}
 				accumulator = 0
 				vindex++
 			}
+
 		}
 	case L12, PY:
 		for i := 0; i < len(horizonal); i++ {
 			for j := 0; j < len(results); j++ {
 				if results[j].Date.Month().String() == horizonal[i] {
-					vertical[i] = results[j].Count
+					log.Info(results[j].Date)
+					vertical[i] += results[j].Count
 				}
 			}
 		}
