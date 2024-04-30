@@ -14,10 +14,10 @@ type Event struct {
 type EventHandler func(event Event, c *Client) error
 
 const (
-	EventVisit       = "visit"
-	EventView        = "view"
-	EventAuthAdmin   = "authadmin"
-	EventUpdateAdmin = "uadmin"
+	EventVisit             = "visit"
+	EventView              = "view"
+	EventAuthAdmin         = "authadmin"
+	EventUpdateVisitsAdmin = "uvadmin"
 )
 
 func SendVisitHandler(event Event, client *Client) error {
@@ -41,7 +41,7 @@ func SendVisitHandler(event Event, client *Client) error {
 
 	var outgoingEvent Event
 	outgoingEvent.Payload = data
-	outgoingEvent.Type = EventUpdateAdmin
+	outgoingEvent.Type = EventUpdateVisitsAdmin
 
 	for client := range client.manager.clients {
 		// Only send to clients inside the same chatroom
@@ -73,7 +73,7 @@ func SendViewHandler(event Event, client *Client) error {
 
 	var outgoingEvent Event
 	outgoingEvent.Payload = data
-	outgoingEvent.Type = EventUpdateAdmin
+	outgoingEvent.Type = EventUpdateVisitsAdmin
 
 	for client := range client.manager.clients {
 		// Only send to clients inside the same chatroom

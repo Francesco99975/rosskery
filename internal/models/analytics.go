@@ -153,6 +153,15 @@ func (cm *ConnectionManager) Run() {
 			cm.clients[client] = true
 		case client := <-cm.disconnect:
 			if _, ok := cm.clients[client]; ok {
+
+				for cl := range client.manager.clients {
+					// Only send to clients inside the same chatroom
+					if cl.room == "admin" {
+						cl.egress <- Event{Type: EventUpdateVisitsAdmin, Payload: []byte("{}")}
+					}
+
+				}
+
 				close(client.egress)
 				analizer.archiveVisit(client.id)
 				client.socket.Close()

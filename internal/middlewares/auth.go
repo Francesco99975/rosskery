@@ -19,7 +19,6 @@ func IsAuthenticatedAdmin() echo.MiddlewareFunc {
 			}
 
 			token := cookie.Value
-
 			if token == "" {
 				return c.JSON(http.StatusUnauthorized, models.JSONErrorResponse{Code: http.StatusUnauthorized, Message: "Unauthorized. Cause -> Token not provided"})
 			}
