@@ -240,7 +240,7 @@ func GetTopSpenders() ([]Spender, error) {
 								GROUP BY
 										c.id, c.firstname, c.lastname, c.email
 								ORDER BY
-										total_money_spent DESC
+										spent DESC
 								LIMIT 10`
 
 	err := db.Select(&spenders, statement)
