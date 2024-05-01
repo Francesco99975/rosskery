@@ -1,8 +1,10 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -94,4 +96,116 @@ func Setup(dsn string) {
 
 	}
 
+}
+
+type Count struct {
+	Date  time.Time
+	Count int
+}
+
+func GetHorizonalDataAndQueryByTimeframe(tableDate string, timeframe Timeframe, timeframeQuery *string) ([]string, error) {
+	var horizontal []string
+
+	switch timeframe {
+	case L7:
+		*timeframeQuery = "WHERE " + tableDate + " >= NOW() - INTERVAL '7' DAY"
+		for i := 6; i >= 0; i-- {
+			horizontal = append(horizontal, time.Now().AddDate(0, 0, -i).Weekday().String())
+		}
+	case PW:
+		*timeframeQuery = "WHERE " + tableDate + " >= DATE_TRUNC('week', NOW()) - INTERVAL '7 DAY' - INTERVAL '1 DAY' AND " + tableDate + " < DATE_TRUNC('week', NOW())"
+		offset := int(time.Now().Weekday())
+		for i := 6 + offset; i >= offset; i-- {
+			horizontal = append(horizontal, fmt.Sprint(time.Now().AddDate(0, 0, -i).Day()))
+		}
+	case L30:
+		*timeframeQuery = "WHERE " + tableDate + " >= NOW() - INTERVAL '30' DAY"
+		for i := 30; i > 0; i-- {
+			if i%6 == 0 {
+				horizontal = append(horizontal, fmt.Sprintf("%d - %d", time.Now().AddDate(0, 0, -i).Day(), time.Now().AddDate(0, 0, (-i)+6).Day()))
+			}
+		}
+	case PM:
+		*timeframeQuery = "WHERE " + tableDate + " >= DATE_TRUNC('month', NOW()) - INTERVAL '30 DAY' - INTERVAL '1 DAY' AND " + tableDate + " < DATE_TRUNC('month', NOW())"
+		offset := time.Now().Day()
+		for i := 30 + offset; i > offset; i-- {
+			if i%6 == 0 {
+				horizontal = append(horizontal, fmt.Sprintf("%d - %d", time.Now().AddDate(0, 0, -i).Day(), time.Now().AddDate(0, 0, (-i)+6).Day()))
+			}
+		}
+	case L12:
+		*timeframeQuery = "WHERE " + tableDate + " >= NOW() - INTERVAL '12' MONTH"
+		for i := 11; i >= 0; i-- {
+			horizontal = append(horizontal, time.Now().AddDate(0, -i, 0).Month().String())
+		}
+	case PY:
+		*timeframeQuery = "WHERE " + tableDate + " >= DATE_TRUNC('year', NOW()) - INTERVAL '12 MONTH' - INTERVAL '1 MONTH' AND " + tableDate + " < DATE_TRUNC('year', NOW())"
+		offset := int(time.Now().Month())
+		for i := 11 + offset; i >= offset; i-- {
+			horizontal = append(horizontal, time.Now().AddDate(0, -i, 0).Month().String())
+		}
+	default:
+		return nil, fmt.Errorf("Invalid timeframe: %v", timeframe)
+	}
+
+	return horizontal, nil
+}
+
+func ComputeVertical(results []Count, horizontal []string, timeframe Timeframe) ([]int, error) {
+	var vertical []int = make([]int, len(horizontal))
+
+	switch timeframe {
+	case L7:
+		for i := 0; i < len(horizontal); i++ {
+			for j := 0; j < len(results); j++ {
+				if results[j].Date.Weekday().String() == horizontal[i] {
+					vertical[i] = results[j].Count
+				}
+			}
+		}
+	case PW:
+		for i := 0; i < len(horizontal); i++ {
+			for j := 0; j < len(results); j++ {
+				if fmt.Sprint(results[j].Date.Day()) == horizontal[i] {
+					vertical[i] = results[j].Count
+				}
+			}
+		}
+	case L30, PM:
+		accumulator := 0
+		vindex := -1
+		for i := 30; i > -6; i-- {
+
+			for j := 0; j < len(results); j++ {
+				current := time.Now().AddDate(0, 0, -i)
+				resdate := results[j].Date
+
+				if resdate.Year() == current.Year() && resdate.Month() == current.Month() && resdate.Day() == current.Day() {
+					accumulator += results[j].Count
+				}
+			}
+
+			if i%6 == 0 {
+				if vindex > -1 {
+					vertical[vindex] = accumulator
+				}
+				accumulator = 0
+				vindex++
+			}
+
+		}
+	case L12, PY:
+		for i := 0; i < len(horizontal); i++ {
+			for j := 0; j < len(results); j++ {
+				if results[j].Date.Month().String() == horizontal[i] {
+
+					vertical[i] += results[j].Count
+				}
+			}
+		}
+	default:
+		return nil, fmt.Errorf("Invalid timeframe: %v", timeframe)
+	}
+
+	return vertical, nil
 }

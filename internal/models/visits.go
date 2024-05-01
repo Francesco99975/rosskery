@@ -1,12 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"math"
 	"slices"
 	"time"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mileusna/useragent"
 )
 
@@ -129,62 +127,12 @@ func GetVisits() ([]Visit, error) {
 }
 
 func GetVisitsByQualityAndTimeframe(quality VisitQuality, timeframe Timeframe) (Dataset, error) {
-	type VisitCount struct {
-		Date  time.Time
-		Count int
-	}
 
-	var results []VisitCount = make([]VisitCount, 0)
+	var results []Count = make([]Count, 0)
 	var whereStm string
-	var horizonal []string
-	var vertical []int
-
-	switch timeframe {
-	case L7:
-		whereStm = "WHERE date >= NOW() - INTERVAL '7' DAY"
-		for i := 6; i >= 0; i-- {
-			horizonal = append(horizonal, time.Now().AddDate(0, 0, -i).Weekday().String())
-			vertical = append(vertical, 0)
-		}
-	case PW:
-		whereStm = "WHERE date >= DATE_TRUNC('week', NOW()) - INTERVAL '7 DAY' - INTERVAL '1 DAY' AND date < DATE_TRUNC('week', NOW())"
-		offset := int(time.Now().Weekday())
-		for i := 6 + offset; i >= offset; i-- {
-			horizonal = append(horizonal, fmt.Sprint(time.Now().AddDate(0, 0, -i).Day()))
-			vertical = append(vertical, 0)
-		}
-	case L30:
-		whereStm = "WHERE date >= NOW() - INTERVAL '30' DAY"
-		for i := 30; i > 0; i-- {
-			if i%6 == 0 {
-				horizonal = append(horizonal, fmt.Sprintf("%d - %d", time.Now().AddDate(0, 0, -i).Day(), time.Now().AddDate(0, 0, (-i)+6).Day()))
-				vertical = append(vertical, 0)
-			}
-		}
-	case PM:
-		whereStm = "WHERE date >= DATE_TRUNC('month', NOW()) - INTERVAL '30 DAY' - INTERVAL '1 DAY' AND date < DATE_TRUNC('month', NOW())"
-		offset := time.Now().Day()
-		for i := 30 + offset; i > offset; i-- {
-			if i%6 == 0 {
-				horizonal = append(horizonal, fmt.Sprintf("%d - %d", time.Now().AddDate(0, 0, -i).Day(), time.Now().AddDate(0, 0, (-i)+6).Day()))
-				vertical = append(vertical, 0)
-			}
-		}
-	case L12:
-		whereStm = "WHERE date >= NOW() - INTERVAL '12' MONTH"
-		for i := 11; i >= 0; i-- {
-			horizonal = append(horizonal, time.Now().AddDate(0, -i, 0).Month().String())
-			vertical = append(vertical, 0)
-		}
-	case PY:
-		whereStm = "WHERE date >= DATE_TRUNC('year', NOW()) - INTERVAL '12 MONTH' - INTERVAL '1 MONTH' AND date < DATE_TRUNC('year', NOW())"
-		offset := int(time.Now().Month())
-		for i := 11 + offset; i >= offset; i-- {
-			horizonal = append(horizonal, time.Now().AddDate(0, -i, 0).Month().String())
-			vertical = append(vertical, 0)
-		}
-	default:
-		return Dataset{}, fmt.Errorf("Invalid timeframe: %v", timeframe)
+	horizontal, err := GetHorizonalDataAndQueryByTimeframe("date", timeframe, &whereStm)
+	if err != nil {
+		return Dataset{}, err
 	}
 
 	var statement string
@@ -195,63 +143,17 @@ func GetVisitsByQualityAndTimeframe(quality VisitQuality, timeframe Timeframe) (
 		statement = `SELECT DATE(date) AS date, COUNT(*) AS count FROM visits ` + whereStm + ` GROUP BY DATE(date) ORDER BY DATE(date) ASC`
 	}
 
-	err := db.Select(&results, statement)
+	err = db.Select(&results, statement)
 	if err != nil {
 		return Dataset{}, err
 	}
 
-	switch timeframe {
-	case L7:
-		for i := 0; i < len(horizonal); i++ {
-			for j := 0; j < len(results); j++ {
-				if results[j].Date.Weekday().String() == horizonal[i] {
-					vertical[i] = results[j].Count
-				}
-			}
-		}
-	case PW:
-		for i := 0; i < len(horizonal); i++ {
-			for j := 0; j < len(results); j++ {
-				if fmt.Sprint(results[j].Date.Day()) == horizonal[i] {
-					vertical[i] = results[j].Count
-				}
-			}
-		}
-	case L30, PM:
-		accumulator := 0
-		vindex := -1
-		for i := 30; i > -6; i-- {
-
-			for j := 0; j < len(results); j++ {
-				current := time.Now().AddDate(0, 0, -i)
-				resdate := results[j].Date
-
-				if resdate.Year() == current.Year() && resdate.Month() == current.Month() && resdate.Day() == current.Day() {
-					accumulator += results[j].Count
-				}
-			}
-
-			if i%6 == 0 {
-				if vindex > -1 {
-					vertical[vindex] = accumulator
-				}
-				accumulator = 0
-				vindex++
-			}
-
-		}
-	case L12, PY:
-		for i := 0; i < len(horizonal); i++ {
-			for j := 0; j < len(results); j++ {
-				if results[j].Date.Month().String() == horizonal[i] {
-					log.Info(results[j].Date)
-					vertical[i] += results[j].Count
-				}
-			}
-		}
+	vertical, err := ComputeVertical(results, horizontal, timeframe)
+	if err != nil {
+		return Dataset{}, err
 	}
 
-	return Dataset{Horizontal: horizonal, Vertical: vertical}, nil
+	return Dataset{Horizontal: horizontal, Vertical: vertical}, nil
 }
 
 func GetVisitsFromIp(ip string) ([]Visit, error) {

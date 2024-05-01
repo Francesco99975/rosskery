@@ -7,11 +7,11 @@ import (
 )
 
 type Purchase struct {
-	Id string `json:"id"`
-	Product Product `json:"product"`
-	Quantity int `json:"quantity"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Id       string    `json:"id"`
+	Product  Product   `json:"product"`
+	Quantity int       `json:"quantity"`
+	Created  time.Time `json:"created"`
+	Updated  time.Time `json:"updated"`
 }
 
 func CreatePurchase(productId string, quantity int) (*Purchase, error) {
@@ -27,7 +27,7 @@ func CreatePurchase(productId string, quantity int) (*Purchase, error) {
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, newPurchase.Id, newPurchase.Product.Id, newPurchase.Quantity); err != nil {
-	if rollbackErr := tx.Rollback(); rollbackErr != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
 		return nil, err
@@ -122,19 +122,22 @@ func (p *Purchase) Delete() (*Purchase, error) {
 type PaymentMethod string
 
 const (
-	CASH PaymentMethod = "cash"
+	CASH   PaymentMethod = "cash"
 	STRIPE PaymentMethod = "stripe"
 	PAYPAL PaymentMethod = "paypal"
 )
+
+var PaymentMethods = []PaymentMethod{CASH, STRIPE, PAYPAL}
+
 type Order struct {
-	Id string `json:"id"`
-	Customer Customer `json:"customer"`
-	Purchases []Purchase `json:"purchases"`
-	Pickuptime time.Time `json:"pickuptime"`
-	Fulfilled bool `json:"fulfilled"`
-	Method string `json:"method"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
+	Id         string     `json:"id"`
+	Customer   Customer   `json:"customer"`
+	Purchases  []Purchase `json:"purchases"`
+	Pickuptime time.Time  `json:"pickuptime"`
+	Fulfilled  bool       `json:"fulfilled"`
+	Method     string     `json:"method"`
+	Created    time.Time  `json:"created"`
+	Updated    time.Time  `json:"updated"`
 }
 
 func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
@@ -334,4 +337,409 @@ func (o *Order) Delete() error {
 	}
 
 	return nil
+}
+
+type RankedOrder struct {
+	Id           string    `json:"id"`
+	Cost         int       `json:"cost"`
+	CustomerName string    `json:"customer_name"`
+	Created      time.Time `json:"created"`
+}
+
+type RankedSeller struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+	Sold     int    `json:"sold"`
+}
+
+type RankedGainer struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+	Gained   int    `json:"gained"`
+}
+
+type FinancesResponse struct {
+	OrdersAmount    int `json:"orders_amount"`    // All orders made
+	OutstandingCash int `json:"outstanding_cash"` // Unpaid cash orders
+	PendingMoney    int `json:"pending_money"`    // Paid online but still unfulfilled
+	Gains           int `json:"gains"`            // All money from fulfilled orders
+	Total           int `json:"total"`            // Total money registred under every order made
+
+	OrdersData   Dataset `json:"orders_data"`
+	MonetaryData Dataset `json:"monetary_data"`
+
+	PreferredMethodData []Dataset `json:"preferred_method_data"`
+
+	FilledPie Pie `json:"filled_pie"`
+	MethodPie Pie `json:"method_pie"`
+
+	RankedOrders   []RankedOrder  `json:"ranked_orders"`
+	ToppedSellers  []RankedSeller `json:"topped_sellers"`
+	ToppedGainers  []RankedGainer `json:"topped_gainers"`
+	FloppedSellers []RankedSeller `json:"flopped_sellers"`
+	FloppedGainers []RankedGainer `json:"flopped_gainers"`
+}
+
+func GetOrdersAmount() (int, error) {
+	var amount int
+	statement := "SELECT COUNT(*) FROM orders"
+
+	err := db.Get(&amount, statement)
+	if err != nil {
+		return 0, err
+	}
+
+	return amount, nil
+}
+
+func GetOutstandingCash() (int, error) {
+	var outstanding int
+
+	statement := `SELECT SUM(products.price * purchases.quantity) AS outstanding
+								FROM orders
+								JOIN purchases ON orders.id = purchases.orderid
+								JOIN products ON purchases.productid = products.id
+								WHERE orders.fulfilled = false
+								AND orders.method = 'cash'`
+
+	err := db.Get(&outstanding, statement)
+	if err != nil {
+		return 0, err
+	}
+
+	return outstanding, nil
+}
+
+func GetPendingMoney() (int, error) {
+	var pending int
+
+	statement := `SELECT SUM(total_cost) AS pending
+								FROM (
+										SELECT SUM(p.quantity * pr.price) AS total_cost
+										FROM orders o
+										JOIN purchases p ON o.id = p.orderid
+										JOIN products pr ON p.productid = pr.id
+										WHERE o.fulfilled = false
+										AND o.method != 'cash'
+										GROUP BY o.id
+								) AS order_totals`
+
+	err := db.Get(&pending, statement)
+	if err != nil {
+		return 0, err
+	}
+
+	return pending, nil
+}
+
+func GetGains() (int, error) {
+	var gains int
+
+	statement := `SELECT SUM(total_cost) AS gains
+								FROM (
+										SELECT SUM(p.quantity * pr.price) AS total_cost
+										FROM orders o
+										JOIN purchases p ON o.id = p.orderid
+										JOIN products pr ON p.productid = pr.id
+										WHERE o.fulfilled = true
+										GROUP BY o.id
+								) AS order_totals`
+
+	err := db.Get(&gains, statement)
+	if err != nil {
+		return 0, err
+	}
+
+	return gains, nil
+}
+
+func GetTotalFromOrders() (int, error) {
+	var total int
+
+	statement := `SELECT SUM(total_cost) AS total
+								FROM (
+										SELECT SUM(p.quantity * pr.price) AS total_cost
+										FROM orders o
+										JOIN purchases p ON o.id = p.orderid
+										JOIN products pr ON p.productid = pr.id
+										GROUP BY o.id
+								) AS order_totals`
+
+	err := db.Get(&total, statement)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+func GetOrdersData(timeframe Timeframe, method PaymentMethod, fulfilled bool) (Dataset, error) {
+
+	var results []Count = make([]Count, 0)
+	var whereStm string
+
+	horizontal, err := GetHorizonalDataAndQueryByTimeframe("orders.created", timeframe, &whereStm)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	switch method {
+	case CASH:
+		whereStm += " AND method = 'cash'"
+	default:
+		whereStm += " AND method != 'cash'"
+	}
+
+	if !fulfilled {
+		whereStm += " AND fulfilled = false"
+	} else {
+		whereStm += " AND fulfilled = true"
+	}
+
+	statement := `SELECT DATE(created) as date, COUNT(*) as count FROM orders ` + whereStm + ` GROUP BY created ORDER BY created ASC`
+
+	err = db.Select(&results, statement)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	vertical, err := ComputeVertical(results, horizontal, timeframe)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	return Dataset{Horizontal: horizontal, Vertical: vertical}, nil
+}
+
+func GetMonetaryData(timeframe Timeframe, method PaymentMethod, fulfilled bool) (Dataset, error) {
+	var results []Count = make([]Count, 0)
+	var whereStm string
+
+	horizontal, err := GetHorizonalDataAndQueryByTimeframe("orders.created", timeframe, &whereStm)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	switch method {
+	case CASH:
+		whereStm += " AND method = 'cash'"
+	default:
+		whereStm += " AND method != 'cash'"
+	}
+
+	if !fulfilled {
+		whereStm += " AND fulfilled = false"
+	} else {
+		whereStm += " AND fulfilled = true"
+	}
+
+	statement := `SELECT DATE(orders.created) as date, SUM(products.price * purchases.quantity) as count FROM orders JOIN purchases ON orders.id = purchases.orderid JOIN products ON purchases.productid = products.id ` + whereStm + `  GROUP BY orders.created ORDER BY orders.created ASC`
+
+	err = db.Select(&results, statement)
+
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	vertical, err := ComputeVertical(results, horizontal, timeframe)
+	if err != nil {
+		return Dataset{}, err
+	}
+
+	return Dataset{Horizontal: horizontal, Vertical: vertical}, nil
+}
+
+func GetPreferredMethodData(timeframe Timeframe, fulfilled bool) ([]Dataset, error) {
+	var results []Dataset = make([]Dataset, 0)
+	var whereStm string
+
+	horizontal, err := GetHorizonalDataAndQueryByTimeframe("orders.created", timeframe, &whereStm)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !fulfilled {
+		whereStm += " AND fulfilled = false"
+	} else {
+		whereStm += " AND fulfilled = true"
+	}
+
+	for method := range PaymentMethods {
+		var result []Count = make([]Count, 0)
+		whereStm += `AND method = ` + string(PaymentMethods[method]) + ` `
+
+		statement := `SELECT
+							DATE(o.created) AS date,
+							COUNT(*) AS count
+							FROM
+									orders o ` + whereStm + `
+							GROUP BY
+									date, o.method
+							ORDER BY
+									date DESC, method`
+
+		err = db.Select(&results, statement)
+
+		if err != nil {
+			return nil, err
+		}
+
+		vertical, err := ComputeVertical(result, horizontal, timeframe)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, Dataset{Horizontal: horizontal, Vertical: vertical})
+
+	}
+
+	return results, nil
+}
+
+func GetTopSellers() ([]RankedSeller, error) {
+	var results []RankedSeller = make([]RankedSeller, 0)
+
+	statement := `SELECT
+								pr.id AS id,
+								pr.name AS name,
+								pr.category AS category,
+								SUM(p.quantity) AS sold
+								FROM
+										products pr
+								JOIN
+										purchases p ON pr.id = p.productid
+								GROUP BY
+										pr.id, pr.name, pr.category
+								ORDER BY
+										sold DESC
+								LIMIT 10`
+
+	err := db.Select(&results, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func GetTopGainers() ([]RankedGainer, error) {
+	var results []RankedGainer = make([]RankedGainer, 0)
+
+	statement := `SELECT
+								pr.id AS id,
+								pr.name AS name,
+								pr.category AS category,
+								SUM(p.quantity * pr.price) AS gained
+								FROM
+										products pr
+								JOIN
+										purchases p ON pr.id = p.productid
+								GROUP BY
+										pr.id, pr.name, pr.category
+								ORDER BY
+										gained DESC
+								LIMIT 10`
+
+	err := db.Select(&results, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func GetFlopSellers() ([]RankedSeller, error) {
+	var results []RankedSeller = make([]RankedSeller, 0)
+
+	statement := `SELECT
+								pr.id AS id,
+								pr.name AS name,
+								pr.category AS category,
+								SUM(p.quantity) AS sold
+								FROM
+										products pr
+								JOIN
+										purchases p ON pr.id = p.productid
+								GROUP BY
+										pr.id, pr.name, pr.category
+								ORDER BY
+										sold ASC
+								LIMIT 10`
+
+	err := db.Select(&results, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func GetFlopGainers() ([]RankedGainer, error) {
+	var results []RankedGainer = make([]RankedGainer, 0)
+
+	statement := `SELECT
+								pr.id AS id,
+								pr.name AS name,
+								pr.category AS category,
+								SUM(p.quantity * pr.price) AS gained
+								FROM
+										products pr
+								JOIN
+										purchases p ON pr.id = p.productid
+								GROUP BY
+										pr.id, pr.name, pr.category
+								ORDER BY
+										gained ASC
+								LIMIT 10`
+
+	err := db.Select(&results, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func GetFilledPie() (Pie, error) {
+	type OrderState struct {
+		Filled      float64
+		Unfulfilled float64
+	}
+
+	var results OrderState
+
+	statement := `SELECT
+								ROUND(COUNT(CASE WHEN fulfilled THEN 1 END) * 100.0 / COUNT(*), 2) AS filled,
+								ROUND(COUNT(CASE WHEN NOT fulfilled THEN 1 END) * 100.0 / COUNT(*), 2) AS unfulfilled
+								FROM orders`
+
+	err := db.Get(&results, statement)
+	if err != nil {
+		return Pie{}, err
+	}
+
+	return Pie{Title: "Orders State", Items: []PieItem{{Label: "Fulfilled", Value: results.Filled}, {Label: "Unfulfilled", Value: results.Unfulfilled}}}, nil
+}
+
+func GetMethodsPie() (Pie, error) {
+
+	var results []PieItem
+
+	statement := `SELECT
+								method AS label,
+								ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM orders), 2) AS value
+								FROM
+										orders
+								GROUP BY
+										method`
+
+	err := db.Select(&results, statement)
+	if err != nil {
+		return Pie{}, err
+	}
+
+	return Pie{Title: "Used Payment Methods", Items: results}, nil
 }
