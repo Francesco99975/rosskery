@@ -182,12 +182,12 @@ func GetCustomersData(timeframe Timeframe) ([]Dataset, error) {
 	havingStm = strings.Replace(havingStm, "WHERE", "HAVING COUNT(*) = 1 AND ", 1)
 
 	newCustomersStatement := `SELECT
-														DATE(created) AS order_date,
-														COUNT(DISTINCT customer) AS new_customer_count
+														DATE(orders.created) AS date,
+														COUNT(DISTINCT customer) AS count
 														FROM
 																orders
 														GROUP BY
-																DATE(created) ` + havingStm + ` ORDER BYorder_date;`
+																orders.created ` + havingStm + ` ORDER BY orders.created;`
 	err = db.Select(&newResults, newCustomersStatement)
 	if err != nil {
 		return nil, err
@@ -201,12 +201,12 @@ func GetCustomersData(timeframe Timeframe) ([]Dataset, error) {
 	havingStm = strings.Replace(havingStm, "=", ">", 1)
 
 	oldCustomersStatement := `SELECT
-														DATE(created) AS order_date,
-														COUNT(DISTINCT customer) AS new_customer_count
+														DATE(orders.created) AS date,
+														COUNT(DISTINCT customer) AS count
 														FROM
 																orders
 														GROUP BY
-																DATE(created) ` + havingStm + ` ORDER BYorder_date;`
+																orders.created ` + havingStm + ` ORDER BY orders.created;`
 
 	err = db.Select(&oldResults, oldCustomersStatement)
 	if err != nil {
@@ -226,7 +226,7 @@ func GetTopSpenders() ([]Spender, error) {
 
 	statement := `SELECT
 								c.id AS id,
-								CONCAT(c.firstname, ' ', c.lastname) AS fullname,
+								c.fullname AS fullname,
 								c.email AS email,
 								COALESCE(SUM(p.quantity * pr.price), 0) AS spent
 								FROM
@@ -238,7 +238,7 @@ func GetTopSpenders() ([]Spender, error) {
 								LEFT JOIN
 										products pr ON p.productid = pr.id
 								GROUP BY
-										c.id, c.firstname, c.lastname, c.email
+										c.id, c.fullname, c.email
 								ORDER BY
 										spent DESC
 								LIMIT 10`

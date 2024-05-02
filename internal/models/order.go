@@ -129,6 +129,19 @@ const (
 
 var PaymentMethods = []PaymentMethod{CASH, STRIPE, PAYPAL}
 
+func ParsePaymentMethod(method string) PaymentMethod {
+	switch method {
+	case "cash":
+		return CASH
+	case "stripe":
+		return STRIPE
+	case "paypal":
+		return PAYPAL
+	default:
+		return CASH
+	}
+}
+
 type Order struct {
 	Id         string     `json:"id"`
 	Customer   Customer   `json:"customer"`
@@ -340,10 +353,10 @@ func (o *Order) Delete() error {
 }
 
 type RankedOrder struct {
-	Id           string    `json:"id"`
-	Cost         int       `json:"cost"`
-	CustomerName string    `json:"customer_name"`
-	Created      time.Time `json:"created"`
+	Id       string    `json:"id"`
+	Cost     int       `json:"cost"`
+	Customer string    `json:"customer_name"`
+	Created  time.Time `json:"created"`
 }
 
 type RankedSeller struct {
@@ -397,7 +410,7 @@ func GetOrdersAmount() (int, error) {
 func GetOutstandingCash() (int, error) {
 	var outstanding int
 
-	statement := `SELECT SUM(products.price * purchases.quantity) AS outstanding
+	statement := `SELECT COALESCE(SUM(products.price * purchases.quantity), 0) AS outstanding
 								FROM orders
 								JOIN purchases ON orders.id = purchases.orderid
 								JOIN products ON purchases.productid = products.id
@@ -415,9 +428,9 @@ func GetOutstandingCash() (int, error) {
 func GetPendingMoney() (int, error) {
 	var pending int
 
-	statement := `SELECT SUM(total_cost) AS pending
+	statement := `SELECT COALESCE(SUM(total_cost), 0) AS pending
 								FROM (
-										SELECT SUM(p.quantity * pr.price) AS total_cost
+										SELECT COALESCE(SUM(p.quantity * pr.price), 0) AS total_cost
 										FROM orders o
 										JOIN purchases p ON o.id = p.orderid
 										JOIN products pr ON p.productid = pr.id
@@ -437,9 +450,9 @@ func GetPendingMoney() (int, error) {
 func GetGains() (int, error) {
 	var gains int
 
-	statement := `SELECT SUM(total_cost) AS gains
+	statement := `SELECT COALESCE(SUM(total_cost), 0) AS gains
 								FROM (
-										SELECT SUM(p.quantity * pr.price) AS total_cost
+										SELECT COALESCE(SUM(p.quantity * pr.price), 0) AS total_cost
 										FROM orders o
 										JOIN purchases p ON o.id = p.orderid
 										JOIN products pr ON p.productid = pr.id
@@ -458,9 +471,9 @@ func GetGains() (int, error) {
 func GetTotalFromOrders() (int, error) {
 	var total int
 
-	statement := `SELECT SUM(total_cost) AS total
+	statement := `SELECT COALESCE(SUM(total_cost), 0) AS total
 								FROM (
-										SELECT SUM(p.quantity * pr.price) AS total_cost
+										SELECT COALESCE(SUM(p.quantity * pr.price), 0) AS total_cost
 										FROM orders o
 										JOIN purchases p ON o.id = p.orderid
 										JOIN products pr ON p.productid = pr.id
@@ -535,7 +548,7 @@ func GetMonetaryData(timeframe Timeframe, method PaymentMethod, fulfilled bool) 
 		whereStm += " AND fulfilled = true"
 	}
 
-	statement := `SELECT DATE(orders.created) as date, SUM(products.price * purchases.quantity) as count FROM orders JOIN purchases ON orders.id = purchases.orderid JOIN products ON purchases.productid = products.id ` + whereStm + `  GROUP BY orders.created ORDER BY orders.created ASC`
+	statement := `SELECT DATE(orders.created) as date, COALESCE(SUM(products.price * purchases.quantity), 0) as count FROM orders JOIN purchases ON orders.id = purchases.orderid JOIN products ON purchases.productid = products.id ` + whereStm + `  GROUP BY orders.created ORDER BY orders.created ASC`
 
 	err = db.Select(&results, statement)
 
@@ -555,7 +568,7 @@ func GetPreferredMethodData(timeframe Timeframe, fulfilled bool) ([]Dataset, err
 	var results []Dataset = make([]Dataset, 0)
 	var whereStm string
 
-	horizontal, err := GetHorizonalDataAndQueryByTimeframe("orders.created", timeframe, &whereStm)
+	horizontal, err := GetHorizonalDataAndQueryByTimeframe("created", timeframe, &whereStm)
 
 	if err != nil {
 		return nil, err
@@ -569,19 +582,19 @@ func GetPreferredMethodData(timeframe Timeframe, fulfilled bool) ([]Dataset, err
 
 	for method := range PaymentMethods {
 		var result []Count = make([]Count, 0)
-		whereStm += `AND method = ` + string(PaymentMethods[method]) + ` `
+		whereStm2 := whereStm + ` AND method = '` + string(PaymentMethods[method]) + `' `
 
 		statement := `SELECT
-							DATE(o.created) AS date,
+							DATE(created) AS date,
 							COUNT(*) AS count
 							FROM
-									orders o ` + whereStm + `
+									orders ` + whereStm2 + `
 							GROUP BY
-									date, o.method
+									date, method
 							ORDER BY
 									date DESC, method`
 
-		err = db.Select(&results, statement)
+		err = db.Select(&result, statement)
 
 		if err != nil {
 			return nil, err
@@ -606,7 +619,7 @@ func GetTopSellers() ([]RankedSeller, error) {
 								pr.id AS id,
 								pr.name AS name,
 								pr.category AS category,
-								SUM(p.quantity) AS sold
+								COALESCE(SUM(p.quantity), 0) AS sold
 								FROM
 										products pr
 								JOIN
@@ -625,6 +638,36 @@ func GetTopSellers() ([]RankedSeller, error) {
 	return results, nil
 }
 
+func GetTopOrders() ([]RankedOrder, error) {
+	var results []RankedOrder = make([]RankedOrder, 0)
+
+	statement := `SELECT
+								o.id AS id,
+								COALESCE(SUM(p.quantity * pr.price), 0) AS cost,
+								c.fullname AS customer,
+								o.created AS created
+								FROM
+										orders o
+								JOIN
+										customers c ON o.customer = c.id
+								JOIN
+										purchases p ON o.id = p.orderid
+								JOIN
+										products pr ON p.productid = pr.id
+								GROUP BY
+										o.id, c.fullname, o.created
+								ORDER BY
+										cost DESC
+								LIMIT 10`
+
+	err := db.Select(&results, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func GetTopGainers() ([]RankedGainer, error) {
 	var results []RankedGainer = make([]RankedGainer, 0)
 
@@ -632,7 +675,7 @@ func GetTopGainers() ([]RankedGainer, error) {
 								pr.id AS id,
 								pr.name AS name,
 								pr.category AS category,
-								SUM(p.quantity * pr.price) AS gained
+								COALESCE(SUM(p.quantity * pr.price), 0) AS gained
 								FROM
 										products pr
 								JOIN
@@ -658,7 +701,7 @@ func GetFlopSellers() ([]RankedSeller, error) {
 								pr.id AS id,
 								pr.name AS name,
 								pr.category AS category,
-								SUM(p.quantity) AS sold
+								COALESCE(SUM(p.quantity), 0) AS sold
 								FROM
 										products pr
 								JOIN
@@ -684,7 +727,7 @@ func GetFlopGainers() ([]RankedGainer, error) {
 								pr.id AS id,
 								pr.name AS name,
 								pr.category AS category,
-								SUM(p.quantity * pr.price) AS gained
+								COALESCE(SUM(p.quantity * pr.price)) AS gained
 								FROM
 										products pr
 								JOIN
@@ -712,8 +755,8 @@ func GetFilledPie() (Pie, error) {
 	var results OrderState
 
 	statement := `SELECT
-								ROUND(COUNT(CASE WHEN fulfilled THEN 1 END) * 100.0 / COUNT(*), 2) AS filled,
-								ROUND(COUNT(CASE WHEN NOT fulfilled THEN 1 END) * 100.0 / COUNT(*), 2) AS unfulfilled
+								ROUND(COALESCE(COUNT(CASE WHEN fulfilled THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 0), 2) AS filled,
+								ROUND(COALESCE(COUNT(CASE WHEN NOT fulfilled THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 0), 2) AS unfulfilled
 								FROM orders`
 
 	err := db.Get(&results, statement)
@@ -726,11 +769,11 @@ func GetFilledPie() (Pie, error) {
 
 func GetMethodsPie() (Pie, error) {
 
-	var results []PieItem
+	var results []PieItem = make([]PieItem, 0)
 
 	statement := `SELECT
 								method AS label,
-								ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM orders), 2) AS value
+								ROUND(COALESCE(COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM orders), 0), 0), 2) AS value
 								FROM
 										orders
 								GROUP BY
