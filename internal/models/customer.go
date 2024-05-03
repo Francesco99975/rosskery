@@ -218,7 +218,7 @@ func GetCustomersData(timeframe Timeframe) ([]Dataset, error) {
 		return nil, err
 	}
 
-	return []Dataset{{Horizontal: horizontal, Vertical: newVertical}, {Horizontal: horizontal, Vertical: oldVertical}}, nil
+	return []Dataset{{Topic: "New Customers", Horizontal: horizontal, Vertical: newVertical, Color: 0x1CE2D4}, {Topic: "Old Customers", Horizontal: horizontal, Vertical: oldVertical, Color: 0xCFE410}}, nil
 }
 
 func GetTopSpenders() ([]Spender, error) {

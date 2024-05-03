@@ -129,6 +129,19 @@ const (
 
 var PaymentMethods = []PaymentMethod{CASH, STRIPE, PAYPAL}
 
+func GetColorForMethod(method PaymentMethod) int {
+	switch method {
+	case CASH:
+		return 0x22BB6F
+	case STRIPE:
+		return 0xD22371
+	case PAYPAL:
+		return 0x0D3575
+	default:
+		return 0x22BB6F
+	}
+}
+
 func ParsePaymentMethod(method string) PaymentMethod {
 	switch method {
 	case "cash":
@@ -355,7 +368,7 @@ func (o *Order) Delete() error {
 type RankedOrder struct {
 	Id       string    `json:"id"`
 	Cost     int       `json:"cost"`
-	Customer string    `json:"customer_name"`
+	Customer string    `json:"customer"`
 	Created  time.Time `json:"created"`
 }
 
@@ -605,7 +618,7 @@ func GetPreferredMethodData(timeframe Timeframe, fulfilled bool) ([]Dataset, err
 			return nil, err
 		}
 
-		results = append(results, Dataset{Horizontal: horizontal, Vertical: vertical})
+		results = append(results, Dataset{Topic: string(PaymentMethods[method]), Horizontal: horizontal, Vertical: vertical, Color: GetColorForMethod(PaymentMethods[method])})
 
 	}
 
@@ -764,7 +777,7 @@ func GetFilledPie() (Pie, error) {
 		return Pie{}, err
 	}
 
-	return Pie{Title: "Orders State", Items: []PieItem{{Label: "Fulfilled", Value: results.Filled}, {Label: "Unfulfilled", Value: results.Unfulfilled}}}, nil
+	return Pie{Title: "Orders State", Items: []PieItem{{Label: "Fulfilled", Value: results.Filled, Color: 0x00FF00}, {Label: "Unfulfilled", Value: results.Unfulfilled, Color: 0xFF0000}}}, nil
 }
 
 func GetMethodsPie() (Pie, error) {
@@ -782,6 +795,10 @@ func GetMethodsPie() (Pie, error) {
 	err := db.Select(&results, statement)
 	if err != nil {
 		return Pie{}, err
+	}
+
+	for i := 0; i < len(results); i++ {
+		results[i].Color = GetColorForMethod(ParsePaymentMethod(results[i].Label))
 	}
 
 	return Pie{Title: "Used Payment Methods", Items: results}, nil
