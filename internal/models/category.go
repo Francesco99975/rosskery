@@ -3,7 +3,7 @@ package models
 import uuid "github.com/satori/go.uuid"
 
 type Category struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -15,12 +15,12 @@ func CategoryExists(name string) bool {
 	return err != nil
 }
 
-func CreateCategory(name string) (*Category, error) {
+func CreateCategory(name string) ([]Category, error) {
 	statement := "INSERT INTO categories (id, name) VALUES ($1, $2)"
 
 	tx := db.MustBegin()
 
-	newCategory := &Category{ Id: uuid.NewV4().String(), Name: name }
+	newCategory := &Category{Id: uuid.NewV4().String(), Name: name}
 
 	if _, err := tx.Exec(statement, newCategory.Id, newCategory.Name); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -36,14 +36,18 @@ func CreateCategory(name string) (*Category, error) {
 		return nil, err
 	}
 
-	return newCategory, nil
-}
+	updatedCategories, err := GetCategories()
+	if err != nil {
+		return nil, err
+	}
 
+	return updatedCategories, nil
+}
 
 func GetCategories() ([]Category, error) {
 	var categories []Category = make([]Category, 0)
 
-	statement := "SELECT * FROM categories"
+	statement := "SELECT * FROM categories ORDER BY created DESC"
 
 	err := db.Select(&categories, statement)
 
@@ -92,24 +96,29 @@ func (category *Category) Update(name string) error {
 	return nil
 }
 
-func (category *Category) Delete() error {
+func (category *Category) Delete() ([]Category, error) {
 	statement := "DELETE FROM categories WHERE id = $1"
 
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, category.Id); err != nil {
-	if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedCategories, err := GetCategories()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedCategories, nil
 }

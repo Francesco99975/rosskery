@@ -6,7 +6,6 @@ import (
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 )
 
 func GetCustomerStats() echo.HandlerFunc {
@@ -70,13 +69,11 @@ func DeleteCustomer() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching customer while deleting: %v", err), Errors: []string{err.Error()}})
 		}
 
-		defer func() {
-			err = customer.Delete()
-			if err != nil {
-				log.Errorf("Error while deleting customer: %v", err)
-			}
-		}()
+		customers, err := customer.Delete()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error deleting customer: %v", err), Errors: []string{err.Error()}})
+		}
 
-		return c.JSON(http.StatusOK, customer)
+		return c.JSON(http.StatusOK, customers)
 	}
 }

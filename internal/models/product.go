@@ -29,7 +29,7 @@ func ProductExists(name string) bool {
 	return err != nil
 }
 
-func CreateProduct(name string, description string, price int, image string, categoryId string, weighed bool) (*Product, error) {
+func CreateProduct(name string, description string, price int, image string, categoryId string, weighed bool) ([]Product, error) {
 	statement := "INSERT INTO products (id, name, description, price, image, featured, published, category, weighed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
 	tx := db.MustBegin()
@@ -55,13 +55,18 @@ func CreateProduct(name string, description string, price int, image string, cat
 		return nil, err
 	}
 
-	return newProduct, nil
+	updatedProducts, err := GetProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedProducts, nil
 }
 
 func GetProducts() ([]Product, error) {
 	var products []Product = make([]Product, 0)
 
-	statement := "SELECT * FROM products"
+	statement := "SELECT * FROM products ORDER BY created DESC"
 
 	err := db.Select(&products, statement)
 	if err != nil {
@@ -97,12 +102,12 @@ func GetProductsByCategory(categoryId string) ([]Product, error) {
 	return products, nil
 }
 
-func (product *Product) Update(name string, description string, price int, image string, featured bool, published bool, categoryId string, weighed bool) error {
+func (product *Product) Update(name string, description string, price int, image string, featured bool, published bool, categoryId string, weighed bool) ([]Product, error) {
 	statement := "UPDATE products SET name = $1, description = $2, price = $3, image = $4, featured = $5, published = $6, category = $7, weighed = $8 WHERE id = $9"
 
 	category, err := GetCategory(categoryId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	product.Name = name
@@ -118,39 +123,49 @@ func (product *Product) Update(name string, description string, price int, image
 
 	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedProducts, err := GetProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedProducts, nil
 }
 
-func (product *Product) Delete() error {
+func (product *Product) Delete() ([]Product, error) {
 	statement := "DELETE FROM products WHERE id = $1"
 
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, product.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedProducts, err := GetProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedProducts, nil
 }

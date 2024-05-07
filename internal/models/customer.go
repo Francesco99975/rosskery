@@ -53,7 +53,7 @@ func CreateCustomer(fullname string, email string, address string, phone string)
 func GetCustomers() ([]Customer, error) {
 	var customers []Customer = make([]Customer, 0)
 
-	statement := "SELECT * FROM customers"
+	statement := "SELECT * FROM customers ORDER BY created DESC"
 
 	err := db.Select(&customers, statement)
 
@@ -92,7 +92,7 @@ func GetCustomerByEmail(email string) (*Customer, error) {
 	return &customer, nil
 }
 
-func (customer *Customer) Update(fullname string, email string, address string, phone string) error {
+func (customer *Customer) Update(fullname string, email string, address string, phone string) ([]Customer, error) {
 	statement := "UPDATE customers SET fullname = $1, email = $2, address = $3, phone = $4 WHERE id = $5"
 
 	customer.Fullname = fullname
@@ -104,41 +104,51 @@ func (customer *Customer) Update(fullname string, email string, address string, 
 
 	if _, err := tx.Exec(statement, customer.Fullname, customer.Email, customer.Address, customer.Phone, customer.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedCustomers, err := GetCustomers()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedCustomers, nil
 }
 
-func (customer *Customer) Delete() error {
+func (customer *Customer) Delete() ([]Customer, error) {
 	statement := "DELETE FROM customers WHERE id = $1"
 
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, customer.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedCustomers, err := GetCustomers()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedCustomers, nil
 }
 
 type Spender struct {

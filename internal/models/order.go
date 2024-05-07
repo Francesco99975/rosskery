@@ -166,7 +166,7 @@ type Order struct {
 	Updated    time.Time  `json:"updated"`
 }
 
-func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
+func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) ([]Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled, method) VALUES ($1, $2, $3, $4, $5)"
 
 	customer, err := GetCustomer(customerId)
@@ -201,7 +201,12 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 		newOrder.Purchases[i] = *purchase
 	}
 
-	return newOrder, nil
+	updatedOrders, err := GetOrders()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedOrders, nil
 }
 
 func GetOrders() ([]Order, error) {
@@ -306,7 +311,7 @@ func GetOrder(id string) (*Order, error) {
 	return &order, nil
 }
 
-func (o *Order) Fulfill() (*Order, error) {
+func (o *Order) Fulfill() ([]Order, error) {
 	statement := "UPDATE orders SET fulfilled = $1 WHERE id = $2"
 
 	tx := db.MustBegin()
@@ -325,7 +330,12 @@ func (o *Order) Fulfill() (*Order, error) {
 		return nil, err
 	}
 
-	return o, nil
+	updatedOrders, err := GetOrders()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedOrders, nil
 }
 
 func (o *Order) CalculateTotal() int {
@@ -336,13 +346,13 @@ func (o *Order) CalculateTotal() int {
 	return total
 }
 
-func (o *Order) Delete() error {
+func (o *Order) Delete() ([]Order, error) {
 	statement := "DELETE FROM orders WHERE id = $1"
 
 	for _, purchase := range o.Purchases {
 		_, err := purchase.Delete()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -350,19 +360,24 @@ func (o *Order) Delete() error {
 
 	if _, err := tx.Exec(statement, o.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+			return nil, rollbackErr
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	updatedOrders, err := GetOrders()
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedOrders, nil
 }
 
 type RankedOrder struct {

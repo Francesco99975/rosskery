@@ -6,7 +6,6 @@ import (
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 )
 
 func GetFinances() echo.HandlerFunc {
@@ -120,18 +119,18 @@ func IssueOrder() echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching customer: %v", err), Errors: []string{err.Error()}})
 			}
 
-			err = customer.Update(payload.Fullname, payload.Email, payload.Address, payload.Phone)
+			_, err := customer.Update(payload.Fullname, payload.Email, payload.Address, payload.Phone)
 			if err != nil {
 				return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error updating customer: %v", err), Errors: []string{err.Error()}})
 			}
 		}
 
-		order, err := models.CreateOrder(customer.Id, payload.Pickuptime, payload.PurchasedItems, payload.Method)
+		orders, err := models.CreateOrder(customer.Id, payload.Pickuptime, payload.PurchasedItems, payload.Method)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating order: %v", err), Errors: []string{err.Error()}})
 		}
 
-		return c.JSON(http.StatusCreated, order)
+		return c.JSON(http.StatusCreated, orders)
 	}
 }
 
@@ -166,13 +165,10 @@ func DeleteOrder() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching order while deleting: %v", err), Errors: []string{err.Error()}})
 		}
 
-		defer func() {
-			err = order.Delete()
-			if err != nil {
-				log.Errorf("Error while deleting order: %v", err)
-			}
-		}()
-
-		return c.JSON(http.StatusOK, order)
+		orders, err := order.Delete()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error deleting order: %v", err), Errors: []string{err.Error()}})
+		}
+		return c.JSON(http.StatusOK, orders)
 	}
 }
