@@ -1,8 +1,10 @@
 package models
 
 import (
+	"mime/multipart"
 	"time"
 
+	"github.com/Francesco99975/rosskery/internal/helpers"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -29,7 +31,7 @@ func ProductExists(name string) bool {
 	return err != nil
 }
 
-func CreateProduct(name string, description string, price int, image string, categoryId string, weighed bool) ([]Product, error) {
+func CreateProduct(name string, description string, price int, file *multipart.FileHeader, categoryId string, weighed bool) ([]Product, error) {
 	statement := "INSERT INTO products (id, name, description, price, image, featured, published, category, weighed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 
 	tx := db.MustBegin()
@@ -39,7 +41,14 @@ func CreateProduct(name string, description string, price int, image string, cat
 		return nil, err
 	}
 
-	newProduct := &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Image: image, Featured: false, Published: true, Category: *category, Weighed: weighed}
+	newProduct := &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Featured: false, Published: true, Category: *category, Weighed: weighed}
+
+	imageUrl, err := helpers.ImageUpload(file, "products", newProduct.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	newProduct.Image = imageUrl
 
 	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, false, true, newProduct.Category.Id, newProduct.Weighed); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
@@ -102,7 +111,7 @@ func GetProductsByCategory(categoryId string) ([]Product, error) {
 	return products, nil
 }
 
-func (product *Product) Update(name string, description string, price int, image string, featured bool, published bool, categoryId string, weighed bool) ([]Product, error) {
+func (product *Product) Update(name string, description string, price int, file *multipart.FileHeader, featured bool, published bool, categoryId string, weighed bool) ([]Product, error) {
 	statement := "UPDATE products SET name = $1, description = $2, price = $3, image = $4, featured = $5, published = $6, category = $7, weighed = $8 WHERE id = $9"
 
 	category, err := GetCategory(categoryId)
@@ -110,10 +119,15 @@ func (product *Product) Update(name string, description string, price int, image
 		return nil, err
 	}
 
+	imageUrl, err := helpers.ImageUpload(file, "products", product.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	product.Name = name
 	product.Description = description
 	product.Price = price
-	product.Image = image
+	product.Image = imageUrl
 	product.Featured = featured
 	product.Published = published
 	product.Category = *category
@@ -149,6 +163,13 @@ func (product *Product) Delete() ([]Product, error) {
 	tx := db.MustBegin()
 
 	if _, err := tx.Exec(statement, product.Id); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	if err := helpers.DeleteImage("products", product.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}

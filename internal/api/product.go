@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
@@ -10,16 +11,30 @@ import (
 
 func AddProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var payload models.ProductDto
-		if err := c.Bind(&payload); err != nil {
-			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing data for product: %v", err), Errors: []string{err.Error()}})
+
+		parsedPrice, err := strconv.Atoi(c.FormValue("price"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing price: %v", err), Errors: []string{err.Error()}})
+		}
+
+		payload := models.ProductDto{
+			Name:        c.FormValue("name"),
+			Description: c.FormValue("description"),
+			Price:       parsedPrice,
+			CategoryId:  c.FormValue("category_id"),
+			Weighed:     c.FormValue("weighed") == "true",
 		}
 
 		if err := payload.Validate(); err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error product not valid: %v", err), Errors: []string{err.Error()}})
 		}
 
-		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, payload.Image, payload.CategoryId, payload.Weighed)
+		file, err := c.FormFile("image")
+		if err != nil {
+			return err
+		}
+
+		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, file, payload.CategoryId, payload.Weighed)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating product: %v", err), Errors: []string{err.Error()}})
 		}
@@ -58,13 +73,27 @@ func Product() echo.HandlerFunc {
 func UpdateProduct() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
-		var payload models.ProductDto
-		if err := c.Bind(&payload); err != nil {
-			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while updating product: %v", err), Errors: []string{err.Error()}})
+
+		parsedPrice, err := strconv.Atoi(c.FormValue("price"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing price: %v", err), Errors: []string{err.Error()}})
+		}
+
+		payload := models.ProductDto{
+			Name:        c.FormValue("name"),
+			Description: c.FormValue("description"),
+			Price:       parsedPrice,
+			CategoryId:  c.FormValue("category_id"),
+			Weighed:     c.FormValue("weighed") == "true",
 		}
 
 		if err := payload.Validate(); err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error product not valid: %v", err), Errors: []string{err.Error()}})
+		}
+
+		file, err := c.FormFile("image")
+		if err != nil {
+			return err
 		}
 
 		product, err := models.GetProduct(id)
@@ -72,7 +101,7 @@ func UpdateProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Product not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
-		products, err := product.Update(payload.Name, payload.Description, payload.Price, payload.Image, payload.Featured, payload.Published, payload.CategoryId, payload.Weighed)
+		products, err := product.Update(payload.Name, payload.Description, payload.Price, file, payload.Featured, payload.Published, payload.CategoryId, payload.Weighed)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while updating product: %v", err), Errors: []string{err.Error()}})
 		}

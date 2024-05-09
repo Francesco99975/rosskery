@@ -24,7 +24,6 @@ type ProductDto struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Price       int    `json:"price"`
-	Image       string `json:"image"`
 	Featured    bool   `json:"featured"`
 	Published   bool   `json:"published"`
 	CategoryId  string `json:"categoryId"`
@@ -44,10 +43,6 @@ func (p *ProductDto) Validate() error {
 		return fmt.Errorf("Product Price cannot be negative")
 	}
 
-	if p.Image == "" {
-		return fmt.Errorf("Product Image cannot be empty")
-	}
-
 	if p.CategoryId == "" {
 		return fmt.Errorf("Product CategoryId cannot be empty")
 	}
@@ -57,8 +52,6 @@ func (p *ProductDto) Validate() error {
 	}
 
 	p.Name = strings.ToLower(p.Name)
-
-	p.Image = strings.ToLower(p.Image)
 
 	return nil
 }
