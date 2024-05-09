@@ -15,6 +15,10 @@ func AddProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing data for product: %v", err), Errors: []string{err.Error()}})
 		}
 
+		if err := payload.Validate(); err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error product not valid: %v", err), Errors: []string{err.Error()}})
+		}
+
 		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, payload.Image, payload.CategoryId, payload.Weighed)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating product: %v", err), Errors: []string{err.Error()}})
@@ -57,6 +61,10 @@ func UpdateProduct() echo.HandlerFunc {
 		var payload models.ProductDto
 		if err := c.Bind(&payload); err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while updating product: %v", err), Errors: []string{err.Error()}})
+		}
+
+		if err := payload.Validate(); err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error product not valid: %v", err), Errors: []string{err.Error()}})
 		}
 
 		product, err := models.GetProduct(id)

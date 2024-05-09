@@ -105,6 +105,10 @@ func IssueOrder() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing data for order: %v", err), Errors: []string{err.Error()}})
 		}
 
+		if err := payload.Validate(); err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error order not valid: %v", err), Errors: []string{err.Error()}})
+		}
+
 		var customer *models.Customer
 
 		if !models.CustomerExists(payload.Email) {

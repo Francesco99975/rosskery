@@ -47,7 +47,7 @@ func CreateCategory(name string) ([]Category, error) {
 func GetCategories() ([]Category, error) {
 	var categories []Category = make([]Category, 0)
 
-	statement := "SELECT * FROM categories ORDER BY created DESC"
+	statement := "SELECT * FROM categories"
 
 	err := db.Select(&categories, statement)
 

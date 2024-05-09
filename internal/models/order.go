@@ -193,7 +193,7 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 	}
 
 	for i, item := range items {
-		purchase, err := CreatePurchase(item.Product.Id, item.Quantity)
+		purchase, err := CreatePurchase(item.ProductId, item.Quantity)
 		if err != nil {
 			return nil, err
 		}
