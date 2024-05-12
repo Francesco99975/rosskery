@@ -62,7 +62,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin.DELETE("orders/:id", api.DeleteOrder())
 	admin.GET("/products", api.Products())
 	admin.GET("/products/:id", api.Product())
-	admin.POST("products", api.AddProduct())
+	admin.POST("/products", api.AddProduct())
 	admin.PUT("/products/:id", api.UpdateProduct())
 	admin.DELETE("/products/:id", api.DeleteProduct())
 	admin.GET("/roles", api.Roles())

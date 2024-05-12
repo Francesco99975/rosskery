@@ -29,10 +29,16 @@ func AddProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error product not valid: %v", err), Errors: []string{err.Error()}})
 		}
 
-		file, err := c.FormFile("image")
+		form, err := c.MultipartForm()
 		if err != nil {
 			return err
 		}
+		uploadedFiles := form.File["image"]
+		if len(uploadedFiles) != 1 {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error uploading files: %v", err), Errors: nil})
+		}
+
+		file := uploadedFiles[0]
 
 		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, file, payload.CategoryId, payload.Weighed)
 		if err != nil {

@@ -39,7 +39,17 @@ func ImageUpload(file *multipart.FileHeader, topic string, identifier string) (s
 		return "", fmt.Errorf("Image format not allowed")
 	}
 
-	dst, err := os.Create(path.Join(topic, identifier))
+	_, err = os.Stat(path.Join("static", topic))
+	if os.IsNotExist(err) {
+		// Directory doesn't exist, create it
+		err := os.MkdirAll(path.Join("static", topic), 0755)
+		if err != nil {
+			return "", fmt.Errorf("Error creating directory: %v", err)
+		}
+
+	}
+
+	dst, err := os.Create(path.Join("static", topic, identifier+".webp"))
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +65,7 @@ func ImageUpload(file *multipart.FileHeader, topic string, identifier string) (s
 	}
 	defer dst.Close()
 
-	return fmt.Sprintf("/%s/%s", topic, identifier), nil
+	return fmt.Sprintf("/static/%s/%s.webp", topic, identifier), nil
 }
 
 func DeleteImage(topic string, identifier string) error {
