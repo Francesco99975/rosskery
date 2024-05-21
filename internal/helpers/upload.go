@@ -69,7 +69,7 @@ func ImageUpload(file *multipart.FileHeader, topic string, identifier string) (s
 }
 
 func DeleteImage(topic string, identifier string) error {
-	return os.Remove(path.Join(topic, identifier))
+	return os.Remove(path.Join("static", topic, identifier+".webp"))
 }
 
 func ToWebP(file *multipart.File, uploadFile *os.File) error {

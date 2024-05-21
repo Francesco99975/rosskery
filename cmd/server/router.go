@@ -28,7 +28,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 		return c.JSON(http.StatusOK, "OK")
 	})
 
-	e.Static("/assets", "./static")
+	e.Static("/static", "./static")
 
 	wsManager := models.NewManager(ctx)
 

@@ -2,11 +2,14 @@ package api
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 func AddProduct() echo.HandlerFunc {
@@ -91,15 +94,25 @@ func UpdateProduct() echo.HandlerFunc {
 			Price:       parsedPrice,
 			CategoryId:  c.FormValue("category_id"),
 			Weighed:     c.FormValue("weighed") == "true",
+			Published:   c.FormValue("published") == "true",
+			Featured:    c.FormValue("featured") == "true",
 		}
 
 		if err := payload.Validate(); err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error product not valid: %v", err), Errors: []string{err.Error()}})
 		}
 
-		file, err := c.FormFile("image")
-		if err != nil {
-			return err
+		image := c.FormValue("file")
+		var file *multipart.FileHeader
+		log.Info("image: ", image)
+
+		if !strings.Contains(image, "/static/") {
+			file, err = c.FormFile("image")
+			if err != nil {
+				return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error uploading files: %v", err), Errors: nil})
+			}
+		} else {
+			file = nil
 		}
 
 		product, err := models.GetProduct(id)

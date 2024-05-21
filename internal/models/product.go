@@ -160,9 +160,9 @@ func GetProduct(id string) (*Product, error) {
 									p.updated AS updated,
 									c.id AS category_id,
 									c.name AS category_name
-									FROM products
+									FROM products p
 									JOIN categories c ON p.category = c.id
-									WHERE id = $1`
+									WHERE p.id = $1`
 	var product DbProduct
 
 	err := db.Get(&product, statement, id)
@@ -212,10 +212,14 @@ func (product *Product) Update(name string, description string, price int, file 
 	if err != nil {
 		return nil, err
 	}
-
-	imageUrl, err := helpers.ImageUpload(file, "products", product.Id)
-	if err != nil {
-		return nil, err
+	var imageUrl string
+	if file != nil {
+		imageUrl, err = helpers.ImageUpload(file, "products", product.Id)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		imageUrl = product.Image
 	}
 
 	product.Name = name
@@ -229,7 +233,7 @@ func (product *Product) Update(name string, description string, price int, file 
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed); err != nil {
+	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed, product.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
