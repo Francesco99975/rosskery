@@ -5,7 +5,7 @@ import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/views/components"
 import "github.com/Francesco99975/rosskery/views/icons"
 
-templ Index(site models.Site) {
+templ Index(site models.Site, featuredProducts []models.Product, newArrivals []models.Product) {
 	@layouts.CoreHTML(site) {
 		<main class="flex flex-col w-full items-center min-h-screen">
 			<section class="relative h-[500px] md:h-[600px] lg:h-[700px] w-full">
@@ -33,26 +33,26 @@ templ Index(site models.Site) {
 				</div>
 			</section>
 			// Load after first draw
-			<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
-				<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">Featured</h2>
-				<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
-					@components.ProductItem("asdd")
-					@components.ProductItem("sdfgsf")
-					@components.ProductItem("sdfsdfsg")
-					@components.ProductItem("sdgshsrhrh")
-					@components.ProductItem("segsdhgshsr")
-				</div>
-			</section>
-			<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
-				<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">New Arrivals</h2>
-				<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
-					@components.ProductItem("asdd")
-					@components.ProductItem("sdfgsf")
-					@components.ProductItem("sdfsdfsg")
-					@components.ProductItem("sdgshsrhrh")
-					@components.ProductItem("segsdhgshsr")
-				</div>
-			</section>
+			if len(featuredProducts) > 0 {
+				<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
+					<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">Featured</h2>
+					<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
+						for _, product := range featuredProducts {
+							@components.ProductItem(product)
+						}
+					</div>
+				</section>
+			}
+			if len(newArrivals) > 0 {
+				<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
+					<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">New Arrivals</h2>
+					<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
+						for _, product := range newArrivals {
+							@components.ProductItem(product)
+						}
+					</div>
+				</section>
+			}
 		</main>
 	}
 }

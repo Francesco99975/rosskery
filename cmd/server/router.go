@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/api"
@@ -11,7 +12,9 @@ import (
 	"github.com/Francesco99975/rosskery/internal/middlewares"
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/views"
+	"github.com/gorilla/sessions"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -22,13 +25,15 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.RemoveTrailingSlash())
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
+
 	e.Logger.SetLevel(log.INFO)
 	e.GET("/healthcheck", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
 	})
 
-	e.Static("/static", "./static")
+	e.Static("/assets", "./static")
 
 	wsManager := models.NewManager(ctx)
 
@@ -37,6 +42,8 @@ func createRouter(ctx context.Context) *echo.Echo {
 	go wsManager.Run()
 
 	e.GET("/", controllers.Index(ctx), middlewares.IsOnline(ctx))
+	e.GET("/bag", controllers.GetCartItems(ctx))
+	e.POST("/bag/:id", controllers.AddToCart(ctx))
 	e.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
 	e.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
 	e.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))

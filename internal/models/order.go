@@ -3,8 +3,17 @@ package models
 import (
 	"time"
 
+	"github.com/Francesco99975/rosskery/internal/helpers"
 	uuid "github.com/satori/go.uuid"
 )
+
+type DbPurchase struct {
+	Id        string    `json:"id"`
+	ProductId string    `json:"product_id" db:"product_id"`
+	Quantity  int       `json:"quantity"`
+	Created   time.Time `json:"created"`
+	Updated   time.Time `json:"updated"`
+}
 
 type Purchase struct {
 	Id       string    `json:"id"`
@@ -12,6 +21,16 @@ type Purchase struct {
 	Quantity int       `json:"quantity"`
 	Created  time.Time `json:"created"`
 	Updated  time.Time `json:"updated"`
+}
+
+func (dbp *DbPurchase) ConvertToProduct(product Product) *Purchase {
+	return &Purchase{
+		Id:       dbp.Id,
+		Product:  product,
+		Quantity: dbp.Quantity,
+		Created:  dbp.Created,
+		Updated:  dbp.Updated,
+	}
 }
 
 func CreatePurchase(productId string, quantity int) (*Purchase, error) {
@@ -57,7 +76,7 @@ func GetPurchases() ([]Purchase, error) {
 }
 
 func GetOrderPurchases(orderId string) ([]Purchase, error) {
-	var purchases []Purchase = make([]Purchase, 0)
+	var purchases []DbPurchase = make([]DbPurchase, 0)
 
 	statement := "SELECT * FROM purchases WHERE orderid = $1"
 
@@ -67,7 +86,13 @@ func GetOrderPurchases(orderId string) ([]Purchase, error) {
 		return nil, err
 	}
 
-	return purchases, nil
+	return helpers.MapSlice(purchases, func(dbp DbPurchase) Purchase {
+		product, err := GetProduct(dbp.ProductId)
+		if err != nil {
+			panic(err)
+		}
+		return *dbp.ConvertToProduct(*product)
+	}), nil
 }
 
 func GetProductPurchases(productId string) ([]Purchase, error) {
@@ -155,6 +180,16 @@ func ParsePaymentMethod(method string) PaymentMethod {
 	}
 }
 
+type DbOrder struct {
+	Id         string    `json:"id"`
+	CustomerId string    `json:"customer_id" db:"customer"`
+	Pickuptime time.Time `json:"pickuptime"`
+	Fulfilled  bool      `json:"fulfilled"`
+	Method     string    `json:"method"`
+	Created    time.Time `json:"created"`
+	Updated    time.Time `json:"updated"`
+}
+
 type Order struct {
 	Id         string     `json:"id"`
 	Customer   Customer   `json:"customer"`
@@ -164,6 +199,19 @@ type Order struct {
 	Method     string     `json:"method"`
 	Created    time.Time  `json:"created"`
 	Updated    time.Time  `json:"updated"`
+}
+
+func (dbp *DbOrder) ConvertToOrder(customer Customer, purchases []Purchase) *Order {
+	return &Order{
+		Id:         dbp.Id,
+		Customer:   customer,
+		Purchases:  purchases,
+		Pickuptime: dbp.Pickuptime,
+		Fulfilled:  dbp.Fulfilled,
+		Method:     dbp.Method,
+		Created:    dbp.Created,
+		Updated:    dbp.Updated,
+	}
 }
 
 func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) ([]Order, error) {
@@ -210,80 +258,24 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 }
 
 func GetOrders() ([]Order, error) {
+	var db_orders []DbOrder = make([]DbOrder, 0)
 	var orders []Order = make([]Order, 0)
 
 	statement := "SELECT * FROM orders"
 
-	err := db.Select(&orders, statement)
+	err := db.Select(&db_orders, statement)
 
-	for _, order := range orders {
-		order.Purchases, err = GetOrderPurchases(order.Id)
+	for _, db_order := range db_orders {
+		customer, err := GetCustomer(db_order.CustomerId)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return orders, nil
-}
-
-func GetCustomerOrders(customerId string) ([]Order, error) {
-	var orders []Order = make([]Order, 0)
-
-	statement := "SELECT * FROM orders WHERE customer = $1"
-
-	err := db.Select(&orders, statement, customerId)
-
-	for _, order := range orders {
-		order.Purchases, err = GetOrderPurchases(order.Id)
+		purchases, err := GetOrderPurchases(db_order.Id)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return orders, nil
-}
-
-func GetFulfilledOrders() ([]Order, error) {
-	var orders []Order = make([]Order, 0)
-
-	statement := "SELECT * FROM orders WHERE fulfilled = $1"
-
-	err := db.Select(&orders, statement, true)
-
-	for _, order := range orders {
-		order.Purchases, err = GetOrderPurchases(order.Id)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return orders, nil
-}
-
-func GetUnfulfilledOrders() ([]Order, error) {
-	var orders []Order = make([]Order, 0)
-
-	statement := "SELECT * FROM orders WHERE fulfilled = $1"
-
-	err := db.Select(&orders, statement, false)
-
-	for _, order := range orders {
-		order.Purchases, err = GetOrderPurchases(order.Id)
-		if err != nil {
-			return nil, err
-		}
+		orders = append(orders, *db_order.ConvertToOrder(*customer, purchases))
 	}
 
 	if err != nil {
@@ -294,15 +286,20 @@ func GetUnfulfilledOrders() ([]Order, error) {
 }
 
 func GetOrder(id string) (*Order, error) {
+	var db_order DbOrder
 	var order Order
 
 	statement := "SELECT * FROM orders WHERE id = $1"
 
-	err := db.Get(&order, statement, id)
+	err := db.Get(&db_order, statement, id)
 	if err != nil {
 		return nil, err
 	}
-
+	customer, err := GetCustomer(db_order.CustomerId)
+	if err != nil {
+		return nil, err
+	}
+	order.Customer = *customer
 	order.Purchases, err = GetOrderPurchases(order.Id)
 	if err != nil {
 		return nil, err

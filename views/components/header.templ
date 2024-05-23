@@ -26,8 +26,9 @@ templ Header(message string) {
 			// <img src="/assets/images/logo.webp" alt="Rosskery Logo" width="85px" height="85px"/>
 			<h1 class="text-3xl"><a href="/">Rosskery</a></h1>
 		</div>
-		<a href="/bag" class="flex justify-center items-center">
+		<a href="/checkout" class="flex justify-center items-center relative">
 			@icons.BagIcon()
+			<div hx-get="/bag" hx-trigger="load" hx-swap="outerHTML"></div> //Lazy load cart badge
 		</a>
 		if len(message) > 0 {
 			<div id="mbg" class="w-full bg-primary whitespace-nowrap overflow-hidden flex justify-center items-center fixed top-24 left-0 z-30">

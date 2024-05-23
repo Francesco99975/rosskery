@@ -109,7 +109,7 @@ func IssueOrder() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error order not valid: %v", err), Errors: []string{err.Error()}})
 		}
 
-		var customer *models.Customer
+		var customer *models.DbCustomer
 
 		if !models.CustomerExists(payload.Email) {
 			customer, err = models.CreateCustomer(payload.Fullname, payload.Email, payload.Address, payload.Phone)

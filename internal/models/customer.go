@@ -7,7 +7,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type Customer struct {
+type DbCustomer struct {
 	Id       string    `json:"id"`
 	Fullname string    `json:"fullname"`
 	Email    string    `json:"email"`
@@ -17,19 +17,43 @@ type Customer struct {
 	Updated  time.Time `json:"updated"`
 }
 
+type Customer struct {
+	Id          string    `json:"id"`
+	Fullname    string    `json:"fullname"`
+	Email       string    `json:"email"`
+	Address     string    `json:"address"`
+	Phone       string    `json:"phone"`
+	Created     time.Time `json:"created"`
+	LastOrdered time.Time `json:"last_ordered" db:"last_ordered"`
+	TotalSpent  int       `json:"total_spent" db:"total_spent"`
+}
+
+func (dbp *DbCustomer) ConvertToCustomer(lastOrdered time.Time, totalSpent int) *Customer {
+	return &Customer{
+		Id:          dbp.Id,
+		Fullname:    dbp.Fullname,
+		Email:       dbp.Email,
+		Address:     dbp.Address,
+		Phone:       dbp.Phone,
+		Created:     dbp.Created,
+		LastOrdered: lastOrdered,
+		TotalSpent:  totalSpent,
+	}
+}
+
 func CustomerExists(email string) bool {
 	statement := "SELECT * FROM customers WHERE email = $1"
-	var customer Customer
+	var customer DbCustomer
 
 	err := db.Get(&customer, statement, email)
 
 	return err != nil
 }
 
-func CreateCustomer(fullname string, email string, address string, phone string) (*Customer, error) {
+func CreateCustomer(fullname string, email string, address string, phone string) (*DbCustomer, error) {
 	statement := "INSERT INTO customers (id, fullname, email, address, phone) VALUES ($1, $2, $3, $4, $5)"
 
-	c := &Customer{Id: uuid.NewV4().String(), Fullname: fullname, Email: email, Address: address, Phone: phone}
+	c := &DbCustomer{Id: uuid.NewV4().String(), Fullname: fullname, Email: email, Address: address, Phone: phone}
 
 	tx := db.MustBegin()
 
@@ -53,7 +77,27 @@ func CreateCustomer(fullname string, email string, address string, phone string)
 func GetCustomers() ([]Customer, error) {
 	var customers []Customer = make([]Customer, 0)
 
-	statement := "SELECT * FROM customers ORDER BY created DESC"
+	statement := `SELECT
+									c.id as id,
+									c.fullname as fullname,
+									c.email as email,
+									c.address as address,
+									c.phone as phone,
+									c.created as created,
+									MAX(o.created) AS last_ordered,
+									COALESCE(SUM(p.quantity * pr.price), 0) AS total_spent
+								FROM
+										customers c
+								LEFT JOIN
+										orders o ON c.id = o.customer
+								LEFT JOIN
+										purchases p ON o.id = p.orderid
+								LEFT JOIN
+										products pr ON p.productid = pr.id
+								GROUP BY
+										c.id, c.fullname, c.email
+								ORDER BY
+										c.fullname ASC`
 
 	err := db.Select(&customers, statement)
 
@@ -67,7 +111,28 @@ func GetCustomers() ([]Customer, error) {
 func GetCustomer(id string) (*Customer, error) {
 	var customer Customer
 
-	statement := "SELECT * FROM customers WHERE id = $1"
+	statement := `SELECT
+									c.id as id,
+									c.fullname as fullname,
+									c.email as email,
+									c.address as address,
+									c.phone as phone,
+									c.created as created,
+									MAX(o.created) AS last_ordered,
+									COALESCE(SUM(p.quantity * pr.price), 0) AS total_spent
+								FROM
+										customers c
+								LEFT JOIN
+										orders o ON c.id = o.customer
+								LEFT JOIN
+										purchases p ON o.id = p.orderid
+								LEFT JOIN
+										products pr ON p.productid = pr.id
+								WHERE c.id = $1
+								GROUP BY
+										c.id, c.fullname, c.email
+								ORDER BY
+										c.fullname ASC`
 
 	err := db.Get(&customer, statement, id)
 
@@ -78,8 +143,8 @@ func GetCustomer(id string) (*Customer, error) {
 	return &customer, nil
 }
 
-func GetCustomerByEmail(email string) (*Customer, error) {
-	var customer Customer
+func GetCustomerByEmail(email string) (*DbCustomer, error) {
+	var customer DbCustomer
 
 	statement := "SELECT * FROM customers WHERE email = $1"
 
@@ -92,7 +157,7 @@ func GetCustomerByEmail(email string) (*Customer, error) {
 	return &customer, nil
 }
 
-func (customer *Customer) Update(fullname string, email string, address string, phone string) ([]Customer, error) {
+func (customer *DbCustomer) Update(fullname string, email string, address string, phone string) ([]Customer, error) {
 	statement := "UPDATE customers SET fullname = $1, email = $2, address = $3, phone = $4 WHERE id = $5"
 
 	customer.Fullname = fullname

@@ -14,7 +14,12 @@ func Shop(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		data := models.GetDefaultSite("Shop", ctx)
 
-		html, err := helpers.GeneratePage(views.Shop(data))
+		products, err := models.GetPublishedProducts()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not fetch products")
+		}
+
+		html, err := helpers.GeneratePage(views.Shop(data, products))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

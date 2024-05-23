@@ -147,6 +147,96 @@ func GetProducts() ([]Product, error) {
 	}), nil
 }
 
+func GetPublishedProducts() ([]Product, error) {
+	var products []DbProduct = make([]DbProduct, 0)
+	statement := `SELECT
+									p.id AS id,
+									p.name AS name,
+									p.description AS description,
+									p.price AS price,
+									p.image AS image,
+									p.featured AS featured,
+									p.published AS published,
+									p.weighed AS weighed,
+									p.created AS created,
+									p.updated AS updated,
+									c.id AS category_id,
+									c.name AS category_name
+								FROM products p
+								JOIN categories c ON p.category = c.id
+								WHERE p.published = true
+								ORDER BY created DESC`
+
+	err := db.Select(&products, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return helpers.MapSlice(products, func(dbp DbProduct) Product {
+		return *dbp.ConvertToProduct()
+	}), nil
+}
+
+func GetFeaturedProducts() ([]Product, error) {
+	var products []DbProduct = make([]DbProduct, 0)
+	statement := `SELECT
+									p.id AS id,
+									p.name AS name,
+									p.description AS description,
+									p.price AS price,
+									p.image AS image,
+									p.featured AS featured,
+									p.published AS published,
+									p.weighed AS weighed,
+									p.created AS created,
+									p.updated AS updated,
+									c.id AS category_id,
+									c.name AS category_name
+								FROM products p
+								JOIN categories c ON p.category = c.id
+								WHERE p.featured = true AND p.published = true
+								ORDER BY created DESC`
+
+	err := db.Select(&products, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return helpers.MapSlice(products, func(dbp DbProduct) Product {
+		return *dbp.ConvertToProduct()
+	}), nil
+}
+
+func GetNewArrivals() ([]Product, error) {
+	var products []DbProduct = make([]DbProduct, 0)
+	statement := `SELECT
+									p.id AS id,
+									p.name AS name,
+									p.description AS description,
+									p.price AS price,
+									p.image AS image,
+									p.featured AS featured,
+									p.published AS published,
+									p.weighed AS weighed,
+									p.created AS created,
+									p.updated AS updated,
+									c.id AS category_id,
+									c.name AS category_name
+								FROM products p
+								JOIN categories c ON p.category = c.id
+								WHERE p.published = true AND p.created > NOW() - INTERVAL '1 WEEK'
+								ORDER BY created DESC`
+
+	err := db.Select(&products, statement)
+	if err != nil {
+		return nil, err
+	}
+
+	return helpers.MapSlice(products, func(dbp DbProduct) Product {
+		return *dbp.ConvertToProduct()
+	}), nil
+}
+
 func GetProduct(id string) (*Product, error) {
 	statement := `SELECT p.id AS id,
 									p.name AS name,

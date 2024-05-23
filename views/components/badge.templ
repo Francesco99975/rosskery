@@ -1,0 +1,7 @@
+package components
+
+import "fmt"
+
+templ Badge(cartItems int) {
+	<div id="cbadge" class="absolute top-0 right-0 flex items-center justify-center w-6 h-6 text-xs font-bold text-std bg-primary rounded-full">{ fmt.Sprint(cartItems) }</div>
+}

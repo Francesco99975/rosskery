@@ -65,7 +65,7 @@ func ImageUpload(file *multipart.FileHeader, topic string, identifier string) (s
 	}
 	defer dst.Close()
 
-	return fmt.Sprintf("/static/%s/%s.webp", topic, identifier), nil
+	return fmt.Sprintf("/assets/%s/%s.webp", topic, identifier), nil
 }
 
 func DeleteImage(topic string, identifier string) error {
