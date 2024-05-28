@@ -1,7 +1,36 @@
 package components
 
 import "fmt"
+import "github.com/Francesco99975/rosskery/internal/models"
+import "github.com/Francesco99975/rosskery/internal/helpers"
+import "github.com/Francesco99975/rosskery/views/icons"
 
-templ Badge(cartItems int) {
-	<div id="cbadge" class="absolute top-0 right-0 flex items-center justify-center w-6 h-6 text-xs font-bold text-std bg-primary rounded-full">{ fmt.Sprint(cartItems) }</div>
+templ Badge(cartItems int, preview *models.CartPreview) {
+	<div id="cbadge">
+		<div class="absolute top-0 right-0 flex items-center justify-center w-6 h-6 text-xs font-bold text-std bg-primary rounded-full">{ fmt.Sprint(cartItems) }</div>
+		<div class="group-hover:block absolute top-0 right-0 mt-12 bg-white shadow-lg rounded-lg p-4 w-80 hidden">
+			<h2 class="text-lg font-bold mb-4">Bag</h2>
+			<ul id="bag-items" class="mb-4 space-y-2">
+				for _, item := range preview.Items {
+					<li class="flex justify-between items-center">
+						<span>{ helpers.Capitalize(item.Product.Name) } (x{ fmt.Sprint(item.Quantity) }) - { helpers.FormatPrice(float64(item.Subtotal) / 100.0) }</span>
+						<div class="flex space-x-2">
+							<button class="text-red-500 hover:text-red-700 w-8 h-8" hx-put={ fmt.Sprintf("/bag/%s", item.Product.Id) } hx-trigger="click" hx-target="#cbadge" hx-swap="outerHTML">
+								@icons.Subtract("#822121")
+							</button>
+							<button class="text-red-500 hover:text-red-700 w-8 h-8" hx-delete={ fmt.Sprintf("/bag/%s", item.Product.Id) } hx-trigger="click" hx-target="#cbadge" hx-swap="outerHTML">
+								@icons.Delete("#9f3232")
+							</button>
+						</div>
+					</li>
+				}
+			</ul>
+			<div class="text-right font-bold" id="total-cost">
+				Total: { helpers.FormatPrice(float64(preview.Total) / 100.0) }
+			</div>
+			<button class="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-700" hx-delete="/bag" hx-trigger="click" hx-target="#cbadge" hx-swap="outerHTML">
+				Empty Bag
+			</button>
+		</div>
+	</div>
 }

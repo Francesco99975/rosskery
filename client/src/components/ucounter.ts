@@ -1,15 +1,17 @@
 import { LitElement, html, css } from "lit";
-import { property } from "lit/decorators.js";
+import { property, query } from "lit/decorators.js";
 
 export class UCounter extends LitElement {
   @property({ type: String })
-  idd: string = "";
+  name: string = "";
 
   @property({ type: Number })
-  min: number = 0;
+  min: number = 1;
 
   @property({ type: Number })
-  value: number = 0;
+  value: number = 1;
+
+  @query("input") input!: HTMLInputElement;
 
   static styles = css`
     div.flex {
@@ -38,28 +40,77 @@ export class UCounter extends LitElement {
 
   private _increase() {
     this.value = +this.value + 1;
+    this._dispatchChangeEvent();
   }
 
   private _decrease() {
     if (+this.value > +this.min) {
       this.value = +this.value - 1;
     }
+    this._dispatchChangeEvent();
+  }
+
+  private _dispatchChangeEvent() {
+    this.dispatchEvent(
+      new CustomEvent("input", {
+        detail: { value: this.value },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    const form = this.closest("form");
+    if (form) {
+      form.addEventListener("reset", this._handleFormReset);
+    }
+  }
+
+  disconnectedCallback() {
+    const form = this.closest("form");
+    if (form) {
+      form.removeEventListener("reset", this._handleFormReset);
+    }
+    super.disconnectedCallback();
+  }
+
+  private _handleFormReset = () => {
+    this.value = this.min;
+  };
+
+  get formValue() {
+    return this.value;
   }
 
   protected render() {
     return html`
       <div class="flex">
         <input
-          id="${"qty" + this.idd}"
-          min="${this.min.toString()}"
-          value="${this.value.toString()}"
+          .id="${"qty" + this.name}"
+          .name="${"qty" + this.name}"
+          .min="${this.min.toString()}"
+          .value="${this.value.toString()}"
           type="hidden"
         />
-        <button id="${"dec" + this.idd}" @click="${this._decrease}">-</button>
+        <button
+          type="button"
+          id="${"dec" + this.name}"
+          @click="${this._decrease}"
+        >
+          -
+        </button>
         <span class="text-xl md:text-3xl font-bold p-2 text-center"
           >${this.value}</span
         >
-        <button id="${"inc" + this.idd}" @click="${this._increase}">+</button>
+        <button
+          type="button"
+          id="${"inc" + this.name}"
+          @click="${this._increase}"
+        >
+          +
+        </button>
       </div>
     `;
   }

@@ -39,9 +39,15 @@ func GetCartItems(ctx context.Context) echo.HandlerFunc {
 		}
 		cart, err := models.GetCart(ctx, sessionID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart")
 		}
-		html, err := helpers.GeneratePage(components.Badge(cart.Len()))
+
+		preview, err := cart.Preview()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
+		}
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
 		}
@@ -51,6 +57,61 @@ func GetCartItems(ctx context.Context) echo.HandlerFunc {
 }
 
 func AddToCart(ctx context.Context) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		productId := c.Param("id")
+		// qty, err := strconv.Atoi(c.FormValue(fmt.Sprintf("qty%s", productId)))
+		// if err != nil {
+		// 	return echo.NewHTTPError(http.StatusBadRequest, "Could not get quantity")
+		// }
+
+		sess, err := session.Get("session", c)
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
+		}
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 7,
+			HttpOnly: true,
+			// Secure:   true,
+			// Domain:   "",
+			// SameSite: http.SameSiteDefaultMode,
+		}
+
+		sessionID, ok := sess.Values["sessionID"].(string)
+		if !ok || sessionID == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not get session id")
+		}
+
+		cart, err := models.GetCart(ctx, sessionID)
+		if err != nil {
+			return err
+		}
+
+		if err := cart.AddItem(ctx, productId, 1); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could add to cart")
+		}
+
+		preview, err := cart.Preview()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
+		}
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		if err != nil {
+			return err
+		}
+
+		err = sess.Save(c.Request(), c.Response())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create session")
+		}
+
+		return c.Blob(200, "text/html; charset=utf-8", html)
+	}
+}
+
+func RemoveOneFromCart(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		productId := c.Param("id")
 
@@ -78,11 +139,117 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 			return err
 		}
 
-		if err := cart.AddItem(ctx, productId, 1); err != nil {
+		if err := cart.RemoveItem(ctx, productId, 1); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could remove from cart")
+		}
+
+		preview, err := cart.Preview()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
+		}
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		if err != nil {
 			return err
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len()))
+		err = sess.Save(c.Request(), c.Response())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create session")
+		}
+
+		return c.Blob(200, "text/html; charset=utf-8", html)
+	}
+}
+
+func RemoveItemFromCart(ctx context.Context) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		productId := c.Param("id")
+
+		sess, err := session.Get("session", c)
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
+		}
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 7,
+			HttpOnly: true,
+			// Secure:   true,
+			// Domain:   "",
+			// SameSite: http.SameSiteDefaultMode,
+		}
+
+		sessionID, ok := sess.Values["sessionID"].(string)
+		if !ok || sessionID == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not get session id")
+		}
+
+		cart, err := models.GetCart(ctx, sessionID)
+		if err != nil {
+			return err
+		}
+
+		if err := cart.DeleteItem(ctx, productId); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could delete product from cart")
+		}
+
+		preview, err := cart.Preview()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
+		}
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		if err != nil {
+			return err
+		}
+
+		err = sess.Save(c.Request(), c.Response())
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create session")
+		}
+
+		return c.Blob(200, "text/html; charset=utf-8", html)
+	}
+}
+
+func ClearCart(ctx context.Context) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		sess, err := session.Get("session", c)
+
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
+		}
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 7,
+			HttpOnly: true,
+			// Secure:   true,
+			// Domain:   "",
+			// SameSite: http.SameSiteDefaultMode,
+		}
+
+		sessionID, ok := sess.Values["sessionID"].(string)
+		if !ok || sessionID == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not get session id")
+		}
+
+		cart, err := models.GetCart(ctx, sessionID)
+		if err != nil {
+			return err
+		}
+
+		if err := cart.Clear(ctx); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could clear cart")
+		}
+
+		preview, err := cart.Preview()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
+		}
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
 		if err != nil {
 			return err
 		}

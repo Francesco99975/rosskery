@@ -23,12 +23,11 @@ templ Header(message string) {
 			</ul>
 		</nav>
 		<div class="flex items-center p-2">
-			// <img src="/assets/images/logo.webp" alt="Rosskery Logo" width="85px" height="85px"/>
 			<h1 class="text-3xl"><a href="/">Rosskery</a></h1>
 		</div>
-		<a href="/checkout" class="flex justify-center items-center relative">
+		<a href="/preview" class="flex justify-center items-center relative group -z-10">
 			@icons.BagIcon()
-			<div hx-get="/bag" hx-trigger="load" hx-swap="outerHTML"></div> //Lazy load cart badge
+			<div hx-get="/bag" hx-trigger="load" hx-swap="outerHTML"></div> <!-- Lazy load cart badge -->
 		</a>
 		if len(message) > 0 {
 			<div id="mbg" class="w-full bg-primary whitespace-nowrap overflow-hidden flex justify-center items-center fixed top-24 left-0 z-30">

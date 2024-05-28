@@ -16,7 +16,7 @@ templ ProductItem(product models.Product) {
 		/>
 		<h2 class="text-xl font-bold absolute top-0 right-0 bg-accent text-std z-10 p-2 rounded-sm">{ helpers.Capitalize(product.Name) } - { helpers.FormatPrice((float64(product.Price) / 100.0)) }</h2>
 		<form hx-post={ fmt.Sprintf("/bag/%s", product.Id) } hx-target="#cbadge" hx-swap="outerHTML" class="flex flex-col w-full">
-			<u-counter class="flex w-full justify-center" idd={ product.Id } min="0" value="0"></u-counter>
+			// <u-counter class="flex w-full justify-center" idd={ product.Id } min="0" value="0"></u-counter>
 			<button type="submit" class="tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl">ADD TO BAG</button>
 		</form>
 	</div>
