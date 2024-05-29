@@ -106,7 +106,7 @@ func UpdateProduct() echo.HandlerFunc {
 		var file *multipart.FileHeader
 		log.Info("image: ", image)
 
-		if !strings.Contains(image, "/static/") {
+		if !strings.Contains(image, "/assets/") {
 			file, err = c.FormFile("image")
 			if err != nil {
 				return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error uploading files: %v", err), Errors: nil})

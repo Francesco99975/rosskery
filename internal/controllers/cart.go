@@ -47,7 +47,7 @@ func GetCartItems(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, false))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
 		}
@@ -63,6 +63,8 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 		// if err != nil {
 		// 	return echo.NewHTTPError(http.StatusBadRequest, "Could not get quantity")
 		// }
+
+		openbag := c.FormValue("openbag") == "true"
 
 		sess, err := session.Get("session", c)
 
@@ -97,7 +99,7 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, openbag))
 		if err != nil {
 			return err
 		}
@@ -148,7 +150,7 @@ func RemoveOneFromCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true))
 		if err != nil {
 			return err
 		}
@@ -199,7 +201,7 @@ func RemoveItemFromCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true))
 		if err != nil {
 			return err
 		}
@@ -249,7 +251,7 @@ func ClearCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview))
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true))
 		if err != nil {
 			return err
 		}

@@ -66,7 +66,7 @@ func ProductItem(product models.Product) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\" class=\"flex flex-col w-full\"><button type=\"submit\" class=\"tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\" class=\"flex flex-col w-full\"><input id=\"openbag\" type=\"hidden\" name=\"openbag\" value=\"false\"> <button type=\"submit\" class=\"tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

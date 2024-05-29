@@ -97,7 +97,7 @@ func Header(message string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></h1></div><a href=\"/preview\" class=\"flex justify-center items-center relative group -z-10\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></h1></div><button id=\"bagic\" class=\"flex justify-center items-center relative\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -114,7 +114,7 @@ func Header(message string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--></a> ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--></button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -144,6 +144,7 @@ func Header(message string) templ.Component {
             var bar1 = document.getElementById('bar1');
             var bar2 = document.getElementById('bar2');
             var bar3 = document.getElementById('bar3');
+						var bagic = document.getElementById('bagic');
 
             burgerMenu.addEventListener('click', function () {
                 navLinks.classList.toggle('hidden');
@@ -179,6 +180,15 @@ func Header(message string) templ.Component {
 									span.parentNode.appendChild(clone);
 							}
 						}
+
+						bagic.addEventListener('click', function () {
+							var dialog = document.getElementById('preview');
+							var openbagInput = document.getElementById('openbag');
+							if (dialog) {
+								dialog.showModal();
+								openbagInput.value = "true";
+							}
+						});
 
         `
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
