@@ -47,6 +47,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.PUT("/bag/:id", controllers.RemoveOneFromCart(ctx))
 	e.DELETE("/bag/:id", controllers.RemoveItemFromCart(ctx))
 	e.DELETE("/bag", controllers.ClearCart(ctx))
+	e.GET("/checkout", controllers.Checkout(ctx), middlewares.IsOnline(ctx))
 	e.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
 	e.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
 	e.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))

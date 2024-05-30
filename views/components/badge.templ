@@ -35,9 +35,9 @@ templ Badge(cartItems int, preview *models.CartPreview, open bool) {
 				<button class="w-full bg-red-500 text-std py-2 rounded-lg hover:bg-red-700" hx-delete="/bag" hx-trigger="click" hx-target="#cbadge" hx-swap="outerHTML">
 					Empty Bag
 				</button>
-				<button hx-get="/checkout" class="w-full bg-primary text-std py-2 rounded-lg my-2" hx-boost="true">
+				<a href="/checkout" hx-boost="true" class="w-full bg-primary text-std py-2 rounded-lg my-2 text-center block">
 					Proceed to Checkout
-				</button>
+				</a>
 			} else {
 				<h1 class="text-center text-primary">No Items in the Bag</h1>
 			}
