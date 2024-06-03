@@ -112,7 +112,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><section class=\"mb-6 text-primary\"><h2 class=\"text-xl md:text-2xl font-bold mb-4\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><section id=\"replace\" class=\"mb-6 text-primary\"><h2 class=\"text-xl md:text-2xl font-bold mb-4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -121,7 +121,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2><form id=\"checkout-form\" hx-post=\"/order\" hx-swap=\"innerHTML\" class=\"space-y-4\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\"><div><label for=\"email\" class=\"block text-sm font-medium\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2><form hx-post=\"/orders\" id=\"checkout-form\" class=\"space-y-4\" hx-target=\"body\" hx-boost=\"true\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\"><div><label for=\"email\" class=\"block text-sm font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -139,7 +139,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"text\" id=\"full-name\" name=\"full-name\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div><div class=\"md:col-span-2\"><label for=\"address\" class=\"block text-sm font-medium\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"text\" id=\"fullname\" name=\"fullname\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div><div class=\"md:col-span-2\"><label for=\"address\" class=\"block text-sm font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -157,20 +157,20 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"tel\" id=\"phone\" name=\"phone\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div><div><label for=\"pickup-date\" class=\"block text-sm font-medium\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"tel\" id=\"phone\" name=\"phone\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div><div><label for=\"pickuptime\" class=\"block text-sm font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var16 := `Pickup Date`
+			templ_7745c5c3_Var16 := `Pickup Time`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"date\" id=\"pickup-date\" name=\"pickup-date\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div></div></form></section><!--")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"datetime-local\" id=\"pickuptime\" name=\"pickuptime\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div></div><!--")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var17 := ` Payment Method and Place Order Section `
+			templ_7745c5c3_Var17 := ` Payment Method Section `
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -184,43 +184,34 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2><div class=\"space-y-4\"><div><label class=\"inline-flex items-center\"><input type=\"radio\" name=\"payment-method\" value=\"credit-card\" class=\"form-radio text-indigo-600\"> <span class=\"ml-2\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2><div class=\"flex space-x-2 border-[3px] border-accent rounded-xl select-none md:w-1/3\"><label class=\"radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer\"><input type=\"radio\" name=\"method\" value=\"stripe\" class=\"peer hidden\" checked=\"\"> <span class=\"tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var19 := `Credit Card`
+			templ_7745c5c3_Var19 := `Pay Online`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></label></div><div><label class=\"inline-flex items-center\"><input type=\"radio\" name=\"payment-method\" value=\"paypal\" class=\"form-radio text-indigo-600\"> <span class=\"ml-2\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></label> <label class=\"radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer\"><input type=\"radio\" name=\"method\" value=\"cash\" class=\"peer hidden\"> <span class=\"tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var20 := `PayPal`
+			templ_7745c5c3_Var20 := `Cash at Pickup`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></label></div><div><label class=\"inline-flex items-center\"><input type=\"radio\" name=\"payment-method\" value=\"bank-transfer\" class=\"form-radio text-indigo-600\"> <span class=\"ml-2\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></label></div></section><button type=\"submit\" form=\"checkout-form\" class=\"mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var21 := `Bank Transfer`
+			templ_7745c5c3_Var21 := `Place Order`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></label></div></div><button type=\"submit\" form=\"checkout-form\" class=\"mt-6 w-full bg-indigo-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-indigo-700\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Var22 := `Place Order`
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></section></div></main>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></form></section></div></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

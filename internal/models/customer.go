@@ -41,13 +41,16 @@ func (dbp *DbCustomer) ConvertToCustomer(lastOrdered time.Time, totalSpent int) 
 	}
 }
 
-func CustomerExists(email string) bool {
-	statement := "SELECT * FROM customers WHERE email = $1"
-	var customer DbCustomer
+func CustomerExists(email string) (bool, error) {
+	var exists bool
 
-	err := db.Get(&customer, statement, email)
+	existQuery := `SELECT EXISTS(SELECT 1 FROM customers WHERE email = $1)`
 
-	return err != nil
+	if err := db.Get(&exists, existQuery, email); err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
 
 func CreateCustomer(fullname string, email string, address string, phone string) (*DbCustomer, error) {
@@ -143,6 +146,20 @@ func GetCustomer(id string) (*Customer, error) {
 	return &customer, nil
 }
 
+func GetDbCustomer(id string) (*DbCustomer, error) {
+	var customer DbCustomer
+
+	statement := "SELECT * FROM customers WHERE id = $1"
+
+	err := db.Get(&customer, statement, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &customer, nil
+}
+
 func GetCustomerByEmail(email string) (*DbCustomer, error) {
 	var customer DbCustomer
 
@@ -157,7 +174,7 @@ func GetCustomerByEmail(email string) (*DbCustomer, error) {
 	return &customer, nil
 }
 
-func (customer *DbCustomer) Update(fullname string, email string, address string, phone string) ([]Customer, error) {
+func (customer *DbCustomer) Update(fullname string, email string, address string, phone string) error {
 	statement := "UPDATE customers SET fullname = $1, email = $2, address = $3, phone = $4 WHERE id = $5"
 
 	customer.Fullname = fullname
@@ -169,24 +186,19 @@ func (customer *DbCustomer) Update(fullname string, email string, address string
 
 	if _, err := tx.Exec(statement, customer.Fullname, customer.Email, customer.Address, customer.Phone, customer.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, rollbackErr
+			return rollbackErr
 		}
-		return nil, err
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, rollbackErr
+			return rollbackErr
 		}
-		return nil, err
+		return err
 	}
 
-	updatedCustomers, err := GetCustomers()
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedCustomers, nil
+	return nil
 }
 
 func (customer *Customer) Delete() ([]Customer, error) {

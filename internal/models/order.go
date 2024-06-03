@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
@@ -9,7 +10,7 @@ import (
 
 type DbPurchase struct {
 	Id        string    `json:"id"`
-	ProductId string    `json:"product_id" db:"product_id"`
+	ProductId string    `json:"product_id" db:"productid"`
 	Quantity  int       `json:"quantity"`
 	Created   time.Time `json:"created"`
 	Updated   time.Time `json:"updated"`
@@ -33,30 +34,30 @@ func (dbp *DbPurchase) ConvertToProduct(product Product) *Purchase {
 	}
 }
 
-func CreatePurchase(productId string, quantity int) (*Purchase, error) {
-	statement := "INSERT INTO purchases (id, productid, quantity) VALUES ($1, $2, $3)"
+func CreatePurchase(orderId string, productId string, quantity int) (*Purchase, error) {
+	statement := "INSERT INTO purchases (id, productid, quantity, orderid) VALUES ($1, $2, $3, $4)"
 
 	product, err := GetProduct(productId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error getting product while submitting purchase: %s", err)
 	}
 
 	newPurchase := &Purchase{Id: uuid.NewV4().String(), Product: *product, Quantity: quantity}
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, newPurchase.Id, newPurchase.Product.Id, newPurchase.Quantity); err != nil {
+	if _, err := tx.Exec(statement, newPurchase.Id, newPurchase.Product.Id, newPurchase.Quantity, orderId); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
-		return nil, err
+		return nil, fmt.Errorf("Error inserting purchase: %s", err)
 	}
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
-		return nil, err
+		return nil, fmt.Errorf("Error committing purchase: %s", err)
 	}
 
 	return newPurchase, nil
@@ -78,7 +79,7 @@ func GetPurchases() ([]Purchase, error) {
 func GetOrderPurchases(orderId string) ([]Purchase, error) {
 	var purchases []DbPurchase = make([]DbPurchase, 0)
 
-	statement := "SELECT * FROM purchases WHERE orderid = $1"
+	statement := "SELECT id, productid, quantity, created, updated FROM purchases WHERE orderid = $1"
 
 	err := db.Select(&purchases, statement, orderId)
 
@@ -217,16 +218,16 @@ func (dbp *DbOrder) ConvertToOrder(customer Customer, purchases []Purchase) *Ord
 func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) ([]Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled, method) VALUES ($1, $2, $3, $4, $5)"
 
-	customer, err := GetCustomer(customerId)
+	customer, err := GetDbCustomer(customerId)
 	if err != nil {
 		return nil, err
 	}
 
-	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *customer, Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false, Method: string(method)}
+	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *(*customer).ConvertToCustomer(time.Time{}, 0), Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false, Method: string(method)}
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, newOrder.Id, newOrder.Customer.Id, newOrder.Pickuptime, newOrder.Fulfilled); err != nil {
+	if _, err := tx.Exec(statement, newOrder.Id, newOrder.Customer.Id, newOrder.Pickuptime, newOrder.Fulfilled, newOrder.Method); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -241,7 +242,7 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 	}
 
 	for i, item := range items {
-		purchase, err := CreatePurchase(item.ProductId, item.Quantity)
+		purchase, err := CreatePurchase(newOrder.Id, item.ProductId, item.Quantity)
 		if err != nil {
 			return nil, err
 		}

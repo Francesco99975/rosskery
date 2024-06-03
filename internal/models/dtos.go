@@ -78,25 +78,15 @@ func (p *PurchasedItem) Validate() error {
 }
 
 type OrderDto struct {
-	PurchasedItems []PurchasedItem `json:"purchasedItems"`
-	Pickuptime     time.Time       `json:"pickuptime"`
-	Method         PaymentMethod   `json:"method"`
-	Fullname       string          `json:"fullname"`
-	Email          string          `json:"email"`
-	Address        string          `json:"address"`
-	Phone          string          `json:"phone"`
+	Pickuptime time.Time     `json:"pickuptime"`
+	Method     PaymentMethod `json:"method"`
+	Fullname   string        `json:"fullname"`
+	Email      string        `json:"email"`
+	Address    string        `json:"address"`
+	Phone      string        `json:"phone"`
 }
 
 func (o *OrderDto) Validate() error {
-	if len(o.PurchasedItems) == 0 {
-		return fmt.Errorf("OrderDto PurchasedItems cannot be empty")
-	}
-
-	for _, item := range o.PurchasedItems {
-		if err := item.Validate(); err != nil {
-			return err
-		}
-	}
 
 	if o.Pickuptime.IsZero() {
 		return fmt.Errorf("OrderDto Pickuptime cannot be empty")

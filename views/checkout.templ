@@ -32,9 +32,9 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview) {
 					</div>
 				</section>
 				<!-- Customer Information Form Section -->
-				<section class="mb-6 text-primary">
+				<section id="replace" class="mb-6 text-primary">
 					<h2 class="text-xl md:text-2xl font-bold mb-4">Customer Information</h2>
-					<form id="checkout-form" hx-post="/order" hx-swap="innerHTML" class="space-y-4">
+					<form hx-post="/orders" id="checkout-form" class="space-y-4" hx-target="body" hx-boost="true">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label for="email" class="block text-sm font-medium">Email</label>
@@ -42,7 +42,7 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview) {
 							</div>
 							<div>
 								<label for="full-name" class="block text-sm font-medium">Full Name</label>
-								<input type="text" id="full-name" name="full-name" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
+								<input type="text" id="fullname" name="fullname" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
 							</div>
 							<div class="md:col-span-2">
 								<label for="address" class="block text-sm font-medium">Address</label>
@@ -53,36 +53,42 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview) {
 								<input type="tel" id="phone" name="phone" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
 							</div>
 							<div>
-								<label for="pickup-date" class="block text-sm font-medium">Pickup Date</label>
-								<input type="date" id="pickup-date" name="pickup-date" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
+								<label for="pickuptime" class="block text-sm font-medium">Pickup Time</label>
+								<input type="datetime-local" id="pickuptime" name="pickuptime" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
 							</div>
 						</div>
+						<!-- Payment Method Section -->
+						<section>
+							<h2 class="text-xl md:text-2xl font-bold mb-4">Payment Method</h2>
+							<div
+ 								class="flex space-x-2 border-[3px] border-accent rounded-xl select-none md:w-1/3"
+							>
+								<label
+ 									class="radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer"
+								>
+									<input
+ 										type="radio"
+ 										name="method"
+ 										value="stripe"
+ 										class="peer hidden"
+ 										checked=""
+									/>
+									<span
+ 										class="tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out"
+									>Pay Online</span>
+								</label>
+								<label
+ 									class="radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer"
+								>
+									<input type="radio" name="method" value="cash" class="peer hidden"/>
+									<span
+ 										class="tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out"
+									>Cash at Pickup</span>
+								</label>
+							</div>
+						</section>
+						<button type="submit" form="checkout-form" class="mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent">Place Order</button>
 					</form>
-				</section>
-				<!-- Payment Method and Place Order Section -->
-				<section>
-					<h2 class="text-xl md:text-2xl font-bold mb-4">Payment Method</h2>
-					<div class="space-y-4">
-						<div>
-							<label class="inline-flex items-center">
-								<input type="radio" name="payment-method" value="credit-card" class="form-radio text-indigo-600"/>
-								<span class="ml-2">Credit Card</span>
-							</label>
-						</div>
-						<div>
-							<label class="inline-flex items-center">
-								<input type="radio" name="payment-method" value="paypal" class="form-radio text-indigo-600"/>
-								<span class="ml-2">PayPal</span>
-							</label>
-						</div>
-						<div>
-							<label class="inline-flex items-center">
-								<input type="radio" name="payment-method" value="bank-transfer" class="form-radio text-indigo-600"/>
-								<span class="ml-2">Bank Transfer</span>
-							</label>
-						</div>
-					</div>
-					<button type="submit" form="checkout-form" class="mt-6 w-full bg-indigo-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-indigo-700">Place Order</button>
 				</section>
 			</div>
 		</main>

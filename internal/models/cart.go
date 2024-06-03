@@ -49,6 +49,23 @@ func (c *Cart) Preview() (CartPreview, error) {
 	return preview, nil
 }
 
+func (c *Cart) Purchases() ([]PurchasedItem, error) {
+	purchases := make([]PurchasedItem, 0)
+
+	for productId, quantity := range c.Items {
+		product, err := GetProduct(productId)
+		if err != nil {
+			return nil, err
+		}
+		purchases = append(purchases, PurchasedItem{
+			ProductId: product.Id,
+			Quantity:  quantity,
+		})
+	}
+
+	return purchases, nil
+}
+
 func (c *Cart) Save(ctx context.Context) error {
 	cartData, err := json.Marshal(c.Items)
 	if err != nil {
