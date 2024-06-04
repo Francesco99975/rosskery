@@ -10,6 +10,8 @@ import (
 	"github.com/Francesco99975/rosskery/cmd/boot"
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/internal/storage"
+
+	"github.com/stripe/stripe-go/v78"
 )
 
 func main() {
@@ -28,6 +30,8 @@ func main() {
 	models.Setup(os.Getenv("DSN"))
 
 	storage.ValkeySetup(ctx)
+
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 	e := createRouter(ctx)
 

@@ -32,7 +32,7 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center\"><form id=\"stripe-form\"><input type=\"hidden\" id=\"pk\" name=\"pk\" value=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center\"><form id=\"stripe-form\" class=\"rounded-lg shadow-lg bg-std p-5\"><input type=\"hidden\" id=\"pk\" name=\"pk\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -40,7 +40,7 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"payment-element\"></div><div id=\"error-messages\"></div><button type=\"submit\" form=\"checkout-form\" class=\"mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"payment-element\"></div><div id=\"error-messages\"></div><button type=\"submit\" class=\"mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -58,26 +58,27 @@ func Pay(site models.Site, publishableKey string) templ.Component {
          const paymentForm = document.getElementById('stripe-form');
           const errors = document.getElementById('error-messages');
           const stripe = Stripe(document.getElementById('pk').value);
-          const { clientSecret } = await fetch("/intent", {
+          fetch("/intent", {
               method: "POST", headers: { "Content-Type": "application/json" }
-          }).then((res) => res.json());
-          const elements = stripe.elements({clientSecret});
-          const paymentElement = elements.create('payment');
-          paymentElement.mount('#payment-element');
+          }).then((res) => res.json()).then((response) => {
+            const elements = stripe.elements({clientSecret: response.clientSecret});
+            const paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
 
 
-          form.addEventListener('submit', (event) => {
-              event.preventDefault();
-              const { error, paymentIntent } = stripe.confirmPayment({elements});
+            paymentForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const { error } = stripe.confirmPayment({elements, confirmParams: {
+                  return_url: window.location.origin + "/orders/success"
+                }
+            });
 
-              if (error) {
-                errors.innerHTML = error.message;
-              } else {
-                fetch(` + "`" + `/orders/${paymentIntent.id}` + "`" + `, {
-                  method: "POST", body: formData, headers: { "Content-Type": "application/json" }
-                });
-              }
+                if (error) {
+                  errors.innerHTML = error.message;
+                }
+            });
           });
+
       }
 
       if(document.readyState !== 'loading') {
@@ -87,7 +88,7 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 
       document.addEventListener('DOMContentLoaded', function() {
         init();
-      })
+      });
 
 		`
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)

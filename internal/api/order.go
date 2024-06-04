@@ -17,7 +17,9 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"github.com/stripe/stripe-go/v78"
+	"github.com/stripe/stripe-go/v78/webhook"
 )
 
 func GetFinances() echo.HandlerFunc {
@@ -123,12 +125,12 @@ func (o *OrderManager) Cache(id string, payload models.OrderDto) {
 	o.cachedOrders[id] = payload
 }
 
-func (o *OrderManager) Confirm(ctx context.Context, c echo.Context, id string) error {
+func (o *OrderManager) Confirm(ctx context.Context, id string) error {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
 	payload := o.cachedOrders[id]
-	if err := processOrder(ctx, c, payload); err != nil {
+	if err := processOrder(ctx, payload, id); err != nil {
 		return err
 	}
 
@@ -136,7 +138,7 @@ func (o *OrderManager) Confirm(ctx context.Context, c echo.Context, id string) e
 	return nil
 }
 
-func processOrder(ctx context.Context, c echo.Context, payload models.OrderDto) error {
+func processOrder(ctx context.Context, payload models.OrderDto, sessionID string) error {
 	var err error
 
 	var customer *models.DbCustomer
@@ -163,25 +165,6 @@ func processOrder(ctx context.Context, c echo.Context, payload models.OrderDto) 
 		}
 	}
 
-	sess, err := session.Get("session", c)
-
-	if err != nil {
-		return fmt.Errorf("Error fetching session: %v", err)
-	}
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7,
-		HttpOnly: true,
-		// Secure:   true,
-		// Domain:   "",
-		// SameSite: http.SameSiteDefaultMode,
-	}
-	sessionID, ok := sess.Values["sessionID"].(string)
-	if !ok || sessionID == "" {
-
-		return errors.New("Session ID is invalid")
-
-	}
 	cart, err := models.GetCart(ctx, sessionID)
 	if err != nil {
 		return fmt.Errorf("Error fetching cart: %v", err)
@@ -206,43 +189,44 @@ func processOrder(ctx context.Context, c echo.Context, payload models.OrderDto) 
 
 func PaymentWebhook(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		sess, err := session.Get("session", c)
-
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
-		}
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   86400 * 7,
-			HttpOnly: true,
-			// Secure:   true,
-			// Domain:   "",
-			// SameSite: http.SameSiteDefaultMode,
-		}
-		sessionID, ok := sess.Values["sessionID"].(string)
-		if !ok || sessionID == "" {
-
-			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create session")
-
-		}
-
 		const MaxBodyBytes = int64(65536)
 		body := http.MaxBytesReader(c.Response().Writer, c.Request().Body, MaxBodyBytes)
 		payload, err := io.ReadAll(body)
 		if err != nil {
+			log.Errorf("Error reading body: %v", err)
 			return echo.NewHTTPError(http.StatusBadRequest, "Error reading body")
 		}
 
 		event := stripe.Event{}
 		if err := json.Unmarshal(payload, &event); err != nil {
+			log.Errorf("Error parsing request body: %v", err)
 			return echo.NewHTTPError(http.StatusBadRequest, "Error parsing request body")
+		}
+
+		signatureHeader := c.Request().Header.Get("Stripe-Signature")
+		endpointSecret := os.Getenv("STRIPE_WEBHOOK_SECRET")
+
+		event, err = webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
+		if err != nil {
+			log.Errorf("Error constructing event: %v", err)
+			return echo.NewHTTPError(http.StatusBadRequest, "Error constructing event")
 		}
 
 		switch event.Type {
 		case "payment_intent.succeeded":
-			if err := om.Confirm(ctx, c, sessionID); err != nil {
+			var paymentIntent stripe.PaymentIntent
+			err := json.Unmarshal(event.Data.Raw, &paymentIntent)
+			if err != nil {
+				log.Errorf("Error parsing payment intent: %v", err)
+				return echo.NewHTTPError(http.StatusBadRequest, "Error parsing payment intent")
+			}
+
+			sessionID := paymentIntent.Metadata["sessionID"]
+			if err := om.Confirm(ctx, sessionID); err != nil {
+				log.Errorf("Error confirming order: %v", err)
 				return echo.NewHTTPError(http.StatusBadRequest, "Error confirming order")
 			}
+
 			data := models.GetDefaultSite("Order Confirmed", ctx)
 
 			html, err := helpers.GeneratePage(views.Confirmation(data))
@@ -282,7 +266,26 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 		}
 
 		if payload.Method == models.CASH {
-			if err := processOrder(ctx, c, payload); err != nil {
+			sess, err := session.Get("session", c)
+
+			if err != nil {
+				return fmt.Errorf("Error fetching session: %v", err)
+			}
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				MaxAge:   86400 * 7,
+				HttpOnly: true,
+				// Secure:   true,
+				// Domain:   "",
+				// SameSite: http.SameSiteDefaultMode,
+			}
+			sessionID, ok := sess.Values["sessionID"].(string)
+			if !ok || sessionID == "" {
+
+				return errors.New("Session ID is invalid")
+
+			}
+			if err := processOrder(ctx, payload, sessionID); err != nil {
 				return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error processing order: %v", err), Errors: []string{err.Error()}})
 			}
 
@@ -319,6 +322,8 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 		}
 
 		om.Cache(sessionID, payload)
+		log.Infof("Order cached on session: %v", sessionID)
+		log.Infof("Orders cached: %v", om.cachedOrders)
 
 		data := models.GetDefaultSite("Pay Online", ctx)
 

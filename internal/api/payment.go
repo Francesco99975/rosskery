@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+
 	"github.com/stripe/stripe-go/v78"
 	"github.com/stripe/stripe-go/v78/paymentintent"
 )
@@ -49,6 +50,9 @@ func CreatePaymentIntent(ctx context.Context) echo.HandlerFunc {
 			Currency: stripe.String(string(stripe.CurrencyCAD)),
 			AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
 				Enabled: stripe.Bool(true),
+			},
+			Metadata: map[string]string{
+				"sessionID": sessionID,
 			},
 		}
 

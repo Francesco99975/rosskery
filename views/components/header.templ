@@ -35,8 +35,8 @@ templ Header(message string) {
 			</div>
 		}
 		<script>
-
-            var burgerMenu = document.getElementById('burgerMenu');
+			function init() {
+						var burgerMenu = document.getElementById('burgerMenu');
             var navLinks = document.getElementById('mobileNavLinks');
             var bar1 = document.getElementById('bar1');
             var bar2 = document.getElementById('bar2');
@@ -86,7 +86,16 @@ templ Header(message string) {
 								openbagInput.value = "true";
 							}
 						});
+			}
 
-        </script>
+			if(document.readyState !== 'loading') {
+				init();
+			}
+
+
+      document.addEventListener('DOMContentLoaded', function() {
+        init();
+      });
+    </script>
 	</header>
 }

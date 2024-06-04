@@ -42,15 +42,26 @@ templ Badge(cartItems int, preview *models.CartPreview, open bool) {
 				<h1 class="text-center text-primary">No Items in the Bag</h1>
 			}
 			<script>
-    document.getElementById("close").addEventListener("click", function (event) {
-        var dialog = document.getElementById('preview');
-				var openbagInput = document.getElementById('openbag');
-				if (dialog) {
-					dialog.close();
-					openbagInput.value = "false";
-					event.stopPropagation();
-        }
-    });
+				function init() {
+					document.getElementById("close").addEventListener("click", function (event) {
+							var dialog = document.getElementById('preview');
+							var openbagInput = document.getElementById('openbag');
+							if (dialog) {
+								dialog.close();
+								openbagInput.value = "false";
+								event.stopPropagation();
+							}
+					});
+				}
+
+				if(document.readyState !== 'loading') {
+					init();
+				}
+
+
+      	document.addEventListener('DOMContentLoaded', function() {
+        	init();
+      	});
   </script>
 		</dialog>
 	</div>

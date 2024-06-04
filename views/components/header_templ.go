@@ -138,8 +138,8 @@ func Header(message string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Var12 := `
-
-            var burgerMenu = document.getElementById('burgerMenu');
+			function init() {
+						var burgerMenu = document.getElementById('burgerMenu');
             var navLinks = document.getElementById('mobileNavLinks');
             var bar1 = document.getElementById('bar1');
             var bar2 = document.getElementById('bar2');
@@ -189,8 +189,17 @@ func Header(message string) templ.Component {
 								openbagInput.value = "true";
 							}
 						});
+			}
 
-        `
+			if(document.readyState !== 'loading') {
+				init();
+			}
+
+
+      document.addEventListener('DOMContentLoaded', function() {
+        init();
+      });
+    `
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

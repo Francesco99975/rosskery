@@ -201,15 +201,26 @@ func Badge(cartItems int, preview *models.CartPreview, open bool) templ.Componen
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Var15 := `
-    document.getElementById("close").addEventListener("click", function (event) {
-        var dialog = document.getElementById('preview');
-				var openbagInput = document.getElementById('openbag');
-				if (dialog) {
-					dialog.close();
-					openbagInput.value = "false";
-					event.stopPropagation();
-        }
-    });
+				function init() {
+					document.getElementById("close").addEventListener("click", function (event) {
+							var dialog = document.getElementById('preview');
+							var openbagInput = document.getElementById('openbag');
+							if (dialog) {
+								dialog.close();
+								openbagInput.value = "false";
+								event.stopPropagation();
+							}
+					});
+				}
+
+				if(document.readyState !== 'loading') {
+					init();
+				}
+
+
+      	document.addEventListener('DOMContentLoaded', function() {
+        	init();
+      	});
   `
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {

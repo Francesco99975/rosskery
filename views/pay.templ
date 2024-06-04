@@ -6,11 +6,13 @@ import "github.com/Francesco99975/rosskery/internal/models"
 templ Pay(site models.Site, publishableKey string) {
 	@layouts.CoreHTML(site) {
 		<main class="flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center">
-			<form id="stripe-form">
+			<form id="stripe-form" class="rounded-lg shadow-lg bg-std p-5">
 				<input type="hidden" id="pk" name="pk" value={ publishableKey }/>
 				<div id="payment-element"></div>
 				<div id="error-messages"></div>
-				<button type="submit" form="checkout-form" class="mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent">Pay Now</button>
+				<button type="submit" class="mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent">
+					Pay Now
+				</button>
 			</form>
 		</main>
 		<script>
@@ -18,26 +20,27 @@ templ Pay(site models.Site, publishableKey string) {
          const paymentForm = document.getElementById('stripe-form');
           const errors = document.getElementById('error-messages');
           const stripe = Stripe(document.getElementById('pk').value);
-          const { clientSecret } = await fetch("/intent", {
+          fetch("/intent", {
               method: "POST", headers: { "Content-Type": "application/json" }
-          }).then((res) => res.json());
-          const elements = stripe.elements({clientSecret});
-          const paymentElement = elements.create('payment');
-          paymentElement.mount('#payment-element');
+          }).then((res) => res.json()).then((response) => {
+            const elements = stripe.elements({clientSecret: response.clientSecret});
+            const paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
 
 
-          form.addEventListener('submit', (event) => {
-              event.preventDefault();
-              const { error, paymentIntent } = stripe.confirmPayment({elements});
+            paymentForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const { error } = stripe.confirmPayment({elements, confirmParams: {
+                  return_url: window.location.origin + "/orders/success"
+                }
+            });
 
-              if (error) {
-                errors.innerHTML = error.message;
-              } else {
-                fetch(`/orders/${paymentIntent.id}`, {
-                  method: "POST", body: formData, headers: { "Content-Type": "application/json" }
-                });
-              }
+                if (error) {
+                  errors.innerHTML = error.message;
+                }
+            });
           });
+
       }
 
       if(document.readyState !== 'loading') {
@@ -47,7 +50,7 @@ templ Pay(site models.Site, publishableKey string) {
 
       document.addEventListener('DOMContentLoaded', function() {
         init();
-      })
+      });
 
 		</script>
 	}

@@ -52,8 +52,9 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.PUT("/bag/:id", controllers.RemoveOneFromCart(ctx), middlewares.IsOnline(ctx))
 	e.DELETE("/bag/:id", controllers.RemoveItemFromCart(ctx), middlewares.IsOnline(ctx))
 	e.DELETE("/bag", controllers.ClearCart(ctx), middlewares.IsOnline(ctx))
-	e.GET("/intent", api.CreatePaymentIntent(ctx), middlewares.IsOnline(ctx))
+	e.POST("/intent", api.CreatePaymentIntent(ctx), middlewares.IsOnline(ctx))
 	e.POST("/orders", api.IssueOrder(ctx), middlewares.IsOnline(ctx))
+	e.GET("/orders/success", controllers.Success(ctx), middlewares.IsOnline(ctx))
 
 	e.POST("/webhook", api.PaymentWebhook(ctx))
 
