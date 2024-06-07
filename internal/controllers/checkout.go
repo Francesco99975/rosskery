@@ -49,7 +49,12 @@ func Checkout(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(views.Checkout(data, &preview))
+		overbookedData, err := models.GetOverbooked()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get overbooked data")
+		}
+
+		html, err := helpers.GeneratePage(views.Checkout(data, &preview, overbookedData))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

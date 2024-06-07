@@ -56,6 +56,8 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.POST("/orders", api.IssueOrder(ctx), middlewares.IsOnline(ctx))
 	e.GET("/orders/success", controllers.Success(ctx), middlewares.IsOnline(ctx))
 
+	e.GET("/address", controllers.AddressAutocomplete())
+
 	e.POST("/webhook", api.PaymentWebhook(ctx))
 
 	e.POST("/login", api.Login(wsManager))

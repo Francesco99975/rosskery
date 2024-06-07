@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
@@ -307,6 +308,38 @@ func GetOrder(id string) (*Order, error) {
 	}
 
 	return &order, nil
+}
+
+func GetOverbooked() (string, error) {
+	type Overbooked struct {
+		Date  time.Time `json:"date"`
+		Count int       `json:"count"`
+	}
+
+	var overbooked []Overbooked = make([]Overbooked, 0)
+	statement := `SELECT
+									DATE(pickuptime) AS date,
+									COUNT(*) AS count
+								FROM
+										orders
+								GROUP BY
+										DATE(pickuptime)
+								HAVING
+										COUNT(*) > 3
+								ORDER BY
+										date;`
+	err := db.Select(&overbooked, statement)
+	if err != nil {
+		return "", err
+	}
+
+	var dates []string = make([]string, 0)
+
+	for _, val := range overbooked {
+		dates = append(dates, val.Date.Format("2006-01-02"))
+	}
+
+	return strings.Join(dates, ","), nil
 }
 
 func (o *Order) Fulfill() ([]Order, error) {

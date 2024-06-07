@@ -1,9 +1,17 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"regexp"
 	"strings"
 	"time"
+
+	"github.com/labstack/gommon/log"
 )
 
 type CategoryDto struct {
@@ -89,30 +97,90 @@ type OrderDto struct {
 func (o *OrderDto) Validate() error {
 
 	if o.Pickuptime.IsZero() {
-		return fmt.Errorf("OrderDto Pickuptime cannot be empty")
+		return fmt.Errorf("Pickuptime cannot be empty")
 	}
 
 	if o.Method == "" {
-		return fmt.Errorf("OrderDto Method cannot be empty")
+		return fmt.Errorf("Method cannot be empty")
 	}
 
 	if o.Fullname == "" {
-		return fmt.Errorf("OrderDto Fullname cannot be empty")
+		return fmt.Errorf("Fullname cannot be empty")
 	}
 
 	if o.Email == "" {
-		return fmt.Errorf("OrderDto Email cannot be empty")
+		return fmt.Errorf("Email cannot be empty")
 	}
 
 	if o.Address == "" {
-		return fmt.Errorf("OrderDto Address cannot be empty")
+		return fmt.Errorf("Address cannot be empty")
 	}
 
 	if o.Phone == "" {
-		return fmt.Errorf("OrderDto Phone cannot be empty")
+		return fmt.Errorf("Phone cannot be empty")
 	}
 
 	o.Email = strings.ToLower(o.Email)
+
+	// Validate phone number
+	phoneRegex := regexp.MustCompile(`^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$`)
+	phoneCleaned := regexp.MustCompile(`[^\d]`).ReplaceAllString(o.Phone, "")
+	if !phoneRegex.MatchString(phoneCleaned) {
+		return fmt.Errorf("Phone is not a valid phone number")
+	}
+
+	// Format phone number
+	formattedPhone := phoneRegex.ReplaceAllString(phoneCleaned, "($1) $2-$3")
+
+	o.Phone = formattedPhone
+
+	addressRegex := regexp.MustCompile(`^\d+\s[A-Za-z]+(?:\s[A-Za-z]+)*,?\s*[A-Za-z]+(?:\s[A-Za-z]+)*,?\s*(?:[A-Za-z]+\s*)?,?\s*(\d{5}|\b[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1}\s?\d{1}[A-Z]{1}\d{1}\b)?(?:\s[A-Za-z]+)?$`)
+	if !addressRegex.MatchString(o.Address) {
+		return fmt.Errorf("Address is not a valid address")
+	}
+
+	formattedAddress := addressRegex.ReplaceAllString(o.Address, "$1")
+
+	type GeocodeResponse struct {
+		Results []struct {
+			FormattedAddress string `json:"formatted_address"`
+			Geometry         struct {
+				Location struct {
+					Lat float64 `json:"lat"`
+					Lng float64 `json:"lng"`
+				} `json:"location"`
+			} `json:"geometry"`
+		} `json:"results"`
+		Status string `json:"status"`
+	}
+
+	apiURL := "https://maps.googleapis.com/maps/api/geocode/json?address=" + url.QueryEscape(o.Address) + "&key=" + os.Getenv("GOOGLE_MAPS_API_KEY")
+
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		log.Errorf("Failed to get geocode response: %v", err)
+		return fmt.Errorf("Address is not a valid address")
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("Failed to read geocode response")
+		return fmt.Errorf("Address is not a valid address")
+	}
+
+	var geocodeResponse GeocodeResponse
+	if err := json.Unmarshal(body, &geocodeResponse); err != nil {
+		log.Errorf("Failed to unmarshal geocode response: %v", err)
+		return fmt.Errorf("Address is not a valid address")
+	}
+
+	if geocodeResponse.Status != "OK" || len(geocodeResponse.Results) == 0 {
+		log.Errorf("Failed to geocode address: %v", geocodeResponse.Status)
+		return fmt.Errorf("Address is not a valid address")
+	}
+
+	o.Address = formattedAddress
 
 	return nil
 }

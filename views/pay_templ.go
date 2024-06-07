@@ -57,7 +57,9 @@ func Pay(site models.Site, publishableKey string) templ.Component {
       function init() {
          const paymentForm = document.getElementById('stripe-form');
           const errors = document.getElementById('error-messages');
-          const stripe = Stripe(document.getElementById('pk').value);
+          const publishableKeyElem = document.getElementById('pk')
+          const stripe = Stripe(publishableKeyElem.value);
+          publishableKeyElem.remove()
           fetch("/intent", {
               method: "POST", headers: { "Content-Type": "application/json" }
           }).then((res) => res.json()).then((response) => {
@@ -104,7 +106,7 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = layouts.CoreHTML(site).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Payment(site, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

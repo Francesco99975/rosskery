@@ -4,7 +4,7 @@ import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/internal/models"
 
 templ Pay(site models.Site, publishableKey string) {
-	@layouts.CoreHTML(site) {
+	@layouts.Payment(site, "") {
 		<main class="flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center">
 			<form id="stripe-form" class="rounded-lg shadow-lg bg-std p-5">
 				<input type="hidden" id="pk" name="pk" value={ publishableKey }/>
@@ -19,7 +19,9 @@ templ Pay(site models.Site, publishableKey string) {
       function init() {
          const paymentForm = document.getElementById('stripe-form');
           const errors = document.getElementById('error-messages');
-          const stripe = Stripe(document.getElementById('pk').value);
+          const publishableKeyElem = document.getElementById('pk')
+          const stripe = Stripe(publishableKeyElem.value);
+          publishableKeyElem.remove()
           fetch("/intent", {
               method: "POST", headers: { "Content-Type": "application/json" }
           }).then((res) => res.json()).then((response) => {

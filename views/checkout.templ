@@ -5,8 +5,9 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/internal/helpers"
 import "fmt"
 
-templ Checkout(site models.Site, cartPreview *models.CartPreview) {
-	@layouts.CoreHTML(site) {
+templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData string) {
+	@layouts.Payment(site, `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+													<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>`) {
 		<main class="flex flex-col gap-2 w-full bg-primary min-h-screen">
 			<div class="w-[90%] md:max-w-7xl mx-auto bg-std p-4 md:p-6 rounded-lg shadow-md mt-3">
 				<section class="mb-6 text-primary">
@@ -32,21 +33,23 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview) {
 					</div>
 				</section>
 				<!-- Customer Information Form Section -->
-				<section id="replace" class="mb-6 text-primary">
+				<section class="mb-6 text-primary">
 					<h2 class="text-xl md:text-2xl font-bold mb-4">Customer Information</h2>
-					<form hx-post="/orders" id="checkout-form" class="space-y-4" hx-target="body" hx-boost="true">
+					<form id="checkout-form" hx-post="/orders" id="checkout-form" class="space-y-4" hx-target="body" hx-boost="true">
+						<input type="hidden" name="dd" id="dd" value={ overbookedData }/>
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label for="email" class="block text-sm font-medium">Email</label>
 								<input type="email" id="email" name="email" required class="mt-1 block w-full rounded-md border-primary shadow-sm focus:ring-iaccent focus:border-accent p-1"/>
 							</div>
 							<div>
-								<label for="full-name" class="block text-sm font-medium">Full Name</label>
+								<label for="fullname" class="block text-sm font-medium">Full Name</label>
 								<input type="text" id="fullname" name="fullname" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
 							</div>
 							<div class="md:col-span-2">
 								<label for="address" class="block text-sm font-medium">Address</label>
-								<input type="text" id="address" name="address" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
+								<input type="text" id="address" name="address" required hx-get="/address" hx-trigger="keyup changed delay:500ms" hx-target="#suggestions" autocomplete="off" class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
+								<div id="suggestions" class="border border-gray-300 mt-2 rounded bg-white shadow-lg"></div>
 							</div>
 							<div>
 								<label for="phone" class="block text-sm font-medium">Phone Number</label>
@@ -54,7 +57,7 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview) {
 							</div>
 							<div>
 								<label for="pickuptime" class="block text-sm font-medium">Pickup Time</label>
-								<input type="datetime-local" id="pickuptime" name="pickuptime" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
+								<input type="hidden" id="pickuptime" name="pickuptime" required class="mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1"/>
 							</div>
 						</div>
 						<!-- Payment Method Section -->
@@ -88,9 +91,82 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview) {
 							</div>
 						</section>
 						<button type="submit" form="checkout-form" class="mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent">Place Order</button>
+						<div id="errors"></div>
 					</form>
 				</section>
 			</div>
+			<script>
+				function init() {
+					const disabledDatesElem = document.getElementById("dd");
+					var disabledDates = [];
+					if(disabledDatesElem.value.includes(",")) {
+						disabledDates = disabledDatesElem.value.split(",")
+					} else {
+						disabledDates = [disabledDatesElem.value]
+					}
+					disabledDatesElem.remove();
+					flatpickr("#pickuptime", {
+						enableTime: true,
+						minTime: "11:00",
+    				maxTime: "18:30",
+						minDate: new Date().fp_incr(2), // 2 days from now
+						"disable": [
+							function(date) {
+									// Disable Weekends
+									return (date.getDay() === 0 || date.getDay() === 6 || disabledDates.includes(date.toISOString().slice(0, 10)));
+
+							}
+    				],
+						altInput: true,
+						altFormat: "F j, Y, h:i K",
+						dateFormat: "Y-m-d H:i",
+					});
+
+					 const form = window.document.getElementById("checkout-form");
+            if (form) {
+                form.addEventListener("htmx:responseError", function (evt) {
+                	const errorBox = window.document.getElementById("errors");
+									if (errorBox) {
+											errorBox.innerHTML = evt.detail.xhr.responseText;
+											errorBox.style.display = "block";
+									}
+            		});
+            }
+
+					document.addEventListener("htmx:afterOnLoad", function(event) {
+            if (event.target.id === "suggestions") {
+                var suggestionsBox = document.getElementById("suggestions");
+                if (suggestionsBox.innerHTML.trim() !== "") {
+                    suggestionsBox.style.display = "block";
+                } else {
+                    suggestionsBox.style.display = "none";
+                }
+            }
+        	});
+
+					document.getElementById("address").addEventListener("keyup", function(event) {
+						if (document.getElementById("suggestions").style.display === 'none') {
+								document.getElementById("suggestions").style.display = "block";
+						}
+					});
+
+					document.addEventListener("click", function(event) {
+							var suggestionsBox = document.getElementById("suggestions");
+							if (suggestionsBox) {
+								if (!suggestionsBox.contains(event.target) && event.target.id !== "address") {
+									suggestionsBox.style.display = "none";
+								}
+							}
+					});
+
+				}
+
+				if (document.readyState !== "loading") {
+					init();
+				}
+
+				document.addEventListener("DOMContentLoaded", init);
+			</script>
 		</main>
 	}
 }

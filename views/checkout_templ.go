@@ -15,7 +15,7 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/internal/helpers"
 import "fmt"
 
-func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component {
+func Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -112,7 +112,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><section id=\"replace\" class=\"mb-6 text-primary\"><h2 class=\"text-xl md:text-2xl font-bold mb-4\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><section class=\"mb-6 text-primary\"><h2 class=\"text-xl md:text-2xl font-bold mb-4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -121,7 +121,15 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2><form hx-post=\"/orders\" id=\"checkout-form\" class=\"space-y-4\" hx-target=\"body\" hx-boost=\"true\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\"><div><label for=\"email\" class=\"block text-sm font-medium\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2><form id=\"checkout-form\" hx-post=\"/orders\" id=\"checkout-form\" class=\"space-y-4\" hx-target=\"body\" hx-boost=\"true\"><input type=\"hidden\" name=\"dd\" id=\"dd\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(overbookedData))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\"><div><label for=\"email\" class=\"block text-sm font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -130,7 +138,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"email\" id=\"email\" name=\"email\" required class=\"mt-1 block w-full rounded-md border-primary shadow-sm focus:ring-iaccent focus:border-accent p-1\"></div><div><label for=\"full-name\" class=\"block text-sm font-medium\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"email\" id=\"email\" name=\"email\" required class=\"mt-1 block w-full rounded-md border-primary shadow-sm focus:ring-iaccent focus:border-accent p-1\"></div><div><label for=\"fullname\" class=\"block text-sm font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -148,7 +156,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"text\" id=\"address\" name=\"address\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div><div><label for=\"phone\" class=\"block text-sm font-medium\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"text\" id=\"address\" name=\"address\" required hx-get=\"/address\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#suggestions\" autocomplete=\"off\" class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"><div id=\"suggestions\" class=\"border border-gray-300 mt-2 rounded bg-white shadow-lg\"></div></div><div><label for=\"phone\" class=\"block text-sm font-medium\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -166,7 +174,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"datetime-local\" id=\"pickuptime\" name=\"pickuptime\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div></div><!--")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label> <input type=\"hidden\" id=\"pickuptime\" name=\"pickuptime\" required class=\"mt-1 block w-full rounded-md border-primaryshadow-sm focus:ring-accent focus:border-accent p-1\"></div></div><!--")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -211,7 +219,87 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></form></section></div></main>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button><div id=\"errors\"></div></form></section></div><script>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var22 := `
+				function init() {
+					const disabledDatesElem = document.getElementById("dd");
+					var disabledDates = [];
+					if(disabledDatesElem.value.includes(",")) {
+						disabledDates = disabledDatesElem.value.split(",")
+					} else {
+						disabledDates = [disabledDatesElem.value]
+					}
+					disabledDatesElem.remove();
+					flatpickr("#pickuptime", {
+						enableTime: true,
+						minTime: "11:00",
+    				maxTime: "18:30",
+						minDate: new Date().fp_incr(2), // 2 days from now
+						"disable": [
+							function(date) {
+									// Disable Weekends
+									return (date.getDay() === 0 || date.getDay() === 6 || disabledDates.includes(date.toISOString().slice(0, 10)));
+
+							}
+    				],
+						altInput: true,
+						altFormat: "F j, Y, h:i K",
+						dateFormat: "Y-m-d H:i",
+					});
+
+					 const form = window.document.getElementById("checkout-form");
+            if (form) {
+                form.addEventListener("htmx:responseError", function (evt) {
+                	const errorBox = window.document.getElementById("errors");
+									if (errorBox) {
+											errorBox.innerHTML = evt.detail.xhr.responseText;
+											errorBox.style.display = "block";
+									}
+            		});
+            }
+
+					document.addEventListener("htmx:afterOnLoad", function(event) {
+            if (event.target.id === "suggestions") {
+                var suggestionsBox = document.getElementById("suggestions");
+                if (suggestionsBox.innerHTML.trim() !== "") {
+                    suggestionsBox.style.display = "block";
+                } else {
+                    suggestionsBox.style.display = "none";
+                }
+            }
+        	});
+
+					document.getElementById("address").addEventListener("keyup", function(event) {
+						if (document.getElementById("suggestions").style.display === 'none') {
+								document.getElementById("suggestions").style.display = "block";
+						}
+					});
+
+					document.addEventListener("click", function(event) {
+							var suggestionsBox = document.getElementById("suggestions");
+							if (suggestionsBox) {
+								if (!suggestionsBox.contains(event.target) && event.target.id !== "address") {
+									suggestionsBox.style.display = "none";
+								}
+							}
+					});
+
+				}
+
+				if (document.readyState !== "loading") {
+					init();
+				}
+
+				document.addEventListener("DOMContentLoaded", init);
+			`
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -220,7 +308,8 @@ func Checkout(site models.Site, cartPreview *models.CartPreview) templ.Component
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = layouts.CoreHTML(site).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Payment(site, `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+													<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>`).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -168,7 +168,7 @@ func Badge(cartItems int, preview *models.CartPreview, open bool) templ.Componen
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button> <a href=\"/checkout\" hx-boost=\"true\" class=\"w-full bg-primary text-std py-2 rounded-lg my-2 text-center block\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button> <a href=\"/checkout\" hx-boost=\"false\" class=\"w-full bg-primary text-std py-2 rounded-lg my-2 text-center block\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

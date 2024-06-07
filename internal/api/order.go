@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"github.com/Francesco99975/rosskery/internal/helpers"
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/views"
+	"github.com/Francesco99975/rosskery/views/components"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -112,17 +112,32 @@ func GetFinances() echo.HandlerFunc {
 }
 
 type OrderManager struct {
-	cachedOrders map[string]models.OrderDto
-	lock         sync.Mutex
+	cachedOrders        map[string]models.OrderDto
+	realtedCreationDate map[string]time.Time
+	lock                sync.Mutex
 }
 
-var om = OrderManager{cachedOrders: make(map[string]models.OrderDto)}
+func NewOrderManager() *OrderManager {
+	om := &OrderManager{cachedOrders: make(map[string]models.OrderDto)}
+	go func() {
+		for {
+			time.Sleep(10 * time.Minute)
+			if err := om.AutoClean(); err != nil {
+				log.Printf("Error cleaning orders: %v", err)
+			}
+		}
+	}()
+	return om
+}
+
+var om = NewOrderManager()
 
 func (o *OrderManager) Cache(id string, payload models.OrderDto) {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
 	o.cachedOrders[id] = payload
+	o.realtedCreationDate[id] = time.Now()
 }
 
 func (o *OrderManager) Confirm(ctx context.Context, id string) error {
@@ -135,6 +150,21 @@ func (o *OrderManager) Confirm(ctx context.Context, id string) error {
 	}
 
 	delete(o.cachedOrders, id)
+	delete(o.realtedCreationDate, id)
+	return nil
+}
+
+func (o *OrderManager) AutoClean() error {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+
+	for id, creationDate := range o.realtedCreationDate {
+		if time.Since(creationDate) > 10*time.Minute {
+			delete(o.cachedOrders, id)
+			delete(o.realtedCreationDate, id)
+		}
+	}
+
 	return nil
 }
 
@@ -247,9 +277,16 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var err error
 
-		date, err := time.Parse("2006-01-02T15:04", c.FormValue("pickuptime"))
+		date, err := time.Parse("2006-01-02 15:04", c.FormValue("pickuptime"))
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error validating order at payment check: %v", err), Errors: []string{err.Error()}})
+			log.Errorf("Error parsing pickuptime: %v", err)
+			html, err := helpers.GeneratePage(components.Errors("Invalid date for pickuptime"))
+
+			if err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
+			}
+
+			return c.Blob(http.StatusBadRequest, "text/html; charset=utf-8", html)
 		}
 
 		payload := models.OrderDto{
@@ -262,43 +299,13 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 		}
 
 		if err = payload.Validate(); err != nil {
-			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error validating order at payment check: %v", err), Errors: []string{err.Error()}})
-		}
-
-		if payload.Method == models.CASH {
-			sess, err := session.Get("session", c)
-
-			if err != nil {
-				return fmt.Errorf("Error fetching session: %v", err)
-			}
-			sess.Options = &sessions.Options{
-				Path:     "/",
-				MaxAge:   86400 * 7,
-				HttpOnly: true,
-				// Secure:   true,
-				// Domain:   "",
-				// SameSite: http.SameSiteDefaultMode,
-			}
-			sessionID, ok := sess.Values["sessionID"].(string)
-			if !ok || sessionID == "" {
-
-				return errors.New("Session ID is invalid")
-
-			}
-			if err := processOrder(ctx, payload, sessionID); err != nil {
-				return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error processing order: %v", err), Errors: []string{err.Error()}})
-			}
-
-			data := models.GetDefaultSite("Order Confirmed", ctx)
-
-			html, err := helpers.GeneratePage(views.Confirmation(data))
-
+			log.Errorf("Error validating payload: %v", err)
+			html, err := helpers.GeneratePage(components.Errors(fmt.Sprintf("Error: %v", err)))
 			if err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
 			}
 
-			return c.Blob(200, "text/html; charset=utf-8", html)
-
+			return c.Blob(http.StatusBadRequest, "text/html; charset=utf-8", html)
 		}
 
 		sess, err := session.Get("session", c)
@@ -321,9 +328,30 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 
 		}
 
+		if payload.Method == models.CASH {
+			if err := processOrder(ctx, payload, sessionID); err != nil {
+				log.Errorf("Error processing order: %v", err)
+				html, err := helpers.GeneratePage(components.Errors("Error processing order"))
+				if err != nil {
+					return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
+				}
+
+				return c.Blob(http.StatusBadRequest, "text/html; charset=utf-8", html)
+			}
+
+			data := models.GetDefaultSite("Order Confirmed", ctx)
+
+			html, err := helpers.GeneratePage(views.Confirmation(data))
+
+			if err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
+			}
+
+			return c.Blob(200, "text/html; charset=utf-8", html)
+
+		}
+
 		om.Cache(sessionID, payload)
-		log.Infof("Order cached on session: %v", sessionID)
-		log.Infof("Orders cached: %v", om.cachedOrders)
 
 		data := models.GetDefaultSite("Pay Online", ctx)
 

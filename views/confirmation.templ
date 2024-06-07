@@ -4,7 +4,7 @@ import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/internal/models"
 
 templ Confirmation(site models.Site) {
-	@layouts.CoreHTML(site) {
+	@layouts.Payment(site, "") {
 		<main class="flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center text-std">
 			<h1 class="text-xl md:text-2xl font-bold mb-4">Thank you for your order!</h1>
 			<p class="text-lg">We will be in touch with you shortly.</p>
