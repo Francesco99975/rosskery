@@ -120,6 +120,16 @@ func (o *OrderDto) Validate() error {
 		return fmt.Errorf("Phone cannot be empty")
 	}
 
+	//Validate Email
+
+	const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+
+	re := regexp.MustCompile(emailRegexPattern)
+
+	if !re.MatchString(o.Email) {
+		return fmt.Errorf("Email is not a valid email address")
+	}
+
 	o.Email = strings.ToLower(o.Email)
 
 	// Validate phone number
@@ -133,6 +143,8 @@ func (o *OrderDto) Validate() error {
 	formattedPhone := phoneRegex.ReplaceAllString(phoneCleaned, "($1) $2-$3")
 
 	o.Phone = formattedPhone
+
+	// Validate address
 
 	addressRegex := regexp.MustCompile(`^\d+\s[A-Za-z]+(?:\s[A-Za-z]+)*,?\s*[A-Za-z]+(?:\s[A-Za-z]+)*,?\s*(?:[A-Za-z]+\s*)?,?\s*(\d{5}|\b[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1}\s?\d{1}[A-Z]{1}\d{1}\b)?(?:\s[A-Za-z]+)?$`)
 	if !addressRegex.MatchString(o.Address) {

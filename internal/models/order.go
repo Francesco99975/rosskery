@@ -216,7 +216,7 @@ func (dbp *DbOrder) ConvertToOrder(customer Customer, purchases []Purchase) *Ord
 	}
 }
 
-func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) ([]Order, error) {
+func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled, method) VALUES ($1, $2, $3, $4, $5)"
 
 	customer, err := GetDbCustomer(customerId)
@@ -251,12 +251,7 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 		newOrder.Purchases[i] = *purchase
 	}
 
-	updatedOrders, err := GetOrders()
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedOrders, nil
+	return newOrder, nil
 }
 
 func GetOrders() ([]Order, error) {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
 	"github.com/Francesco99975/rosskery/internal/models"
+	"github.com/Francesco99975/rosskery/internal/tools"
 	"github.com/Francesco99975/rosskery/views"
 	"github.com/Francesco99975/rosskery/views/components"
 	"github.com/gorilla/sessions"
@@ -205,13 +206,36 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 		return fmt.Errorf("Error fetching purchases: %v", err)
 	}
 
-	_, err = models.CreateOrder(customer.Id, payload.Pickuptime, purchases, payload.Method)
+	order, err := models.CreateOrder(customer.Id, payload.Pickuptime, purchases, payload.Method)
 	if err != nil {
 		return fmt.Errorf("Error creating order: %v", err)
 	}
 
 	if err = cart.Clear(ctx); err != nil {
 		return fmt.Errorf("Error clearing cart: %v", err)
+	}
+
+	total := helpers.FormatPrice(float64(helpers.FoldSlice[models.Purchase, func(models.Purchase, int) int, int](order.Purchases, func(prev models.Purchase, cur int) int {
+		return prev.Product.Price * prev.Quantity
+	}, 0) / 100))
+
+	invoice, err := tools.GenerateInvoice(order)
+	if err != nil {
+		return fmt.Errorf("Error generating invoice: %v", err)
+	}
+
+	payStatus := "Pay at Pickup"
+	if models.ParsePaymentMethod(order.Method) != models.CASH {
+		payStatus = "No payment is due"
+	}
+
+	purchaseDetails := helpers.MapSlice[models.Purchase, tools.ReceiptDetail](order.Purchases, func(p models.Purchase) tools.ReceiptDetail {
+		return tools.ReceiptDetail{Description: fmt.Sprintf("%s - (x%d)", p.Product.Name, p.Quantity), Amount: helpers.FormatPrice(float64(p.Product.Price*p.Quantity) / 100)}
+	})
+
+	err = tools.SendReceipt(order.Customer.Email, tools.Receipt{ProductURL: "rosskery.com", ProductName: "Rosskery", Customer: order.Customer.Fullname, PaymentStatus: payStatus, CreditCardStatementName: "Rosskery", OrderID: order.Id, Date: order.Created.Format(time.RubyDate), ReceiptDetails: purchaseDetails, Total: fmt.Sprint(total), SupportURL: "", CompanyName: "Rosskey", CompanyAddress: "robarra@rosskery.com"}, invoice)
+	if err != nil {
+		return fmt.Errorf("Error sending receipt: %v", err)
 	}
 
 	return nil
@@ -361,6 +385,23 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 		}
 
 		return c.Blob(200, "text/html; charset=utf-8", html)
+	}
+}
+
+func FulfillOrder() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id := c.Param("id")
+		order, err := models.GetOrder(id)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching order while fulfilling: %v", err), Errors: []string{err.Error()}})
+		}
+
+		orders, err := order.Fulfill()
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fulfilling order: %v", err), Errors: []string{err.Error()}})
+		}
+		return c.JSON(http.StatusOK, orders)
+
 	}
 }
 
