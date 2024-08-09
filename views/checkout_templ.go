@@ -48,7 +48,7 @@ func Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData 
 				return templ_7745c5c3_Err
 			}
 			for _, item := range cartPreview.Items {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4\"><div><h3 class=\"text-lg font-semibold\">")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-primary pb-4\"><div><h3 class=\"text-lg font-semibold\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

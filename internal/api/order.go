@@ -119,7 +119,7 @@ type OrderManager struct {
 }
 
 func NewOrderManager() *OrderManager {
-	om := &OrderManager{cachedOrders: make(map[string]models.OrderDto)}
+	om := &OrderManager{cachedOrders: make(map[string]models.OrderDto, 0), realtedCreationDate: make(map[string]time.Time, 0)}
 	go func() {
 		for {
 			time.Sleep(10 * time.Minute)

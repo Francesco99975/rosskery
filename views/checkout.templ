@@ -14,7 +14,7 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData
 					<h2 class="text-2xl md:text-3xl font-bold mb-4">Your Bag</h2>
 					<div id="cart-items" class="space-y-4">
 						for _, item := range cartPreview.Items {
-							<div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4">
+							<div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-primary pb-4">
 								<div>
 									<h3 class="text-lg font-semibold">{ helpers.Capitalize(item.Product.Name) }</h3>
 									<p>Quantity: { fmt.Sprint(item.Quantity) }</p>
