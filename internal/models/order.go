@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
+	"github.com/labstack/gommon/log"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -251,7 +253,14 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 		newOrder.Purchases[i] = *purchase
 	}
 
-	return newOrder, nil
+	createdOrder, err := GetOrder(newOrder.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Infof("Created order %v", createdOrder)
+
+	return createdOrder, nil
 }
 
 func GetOrders() ([]Order, error) {
@@ -284,7 +293,6 @@ func GetOrders() ([]Order, error) {
 
 func GetOrder(id string) (*Order, error) {
 	var db_order DbOrder
-	var order Order
 
 	statement := "SELECT * FROM orders WHERE id = $1"
 
@@ -296,13 +304,13 @@ func GetOrder(id string) (*Order, error) {
 	if err != nil {
 		return nil, err
 	}
-	order.Customer = *customer
-	order.Purchases, err = GetOrderPurchases(order.Id)
+
+	purchases, err := GetOrderPurchases(db_order.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &order, nil
+	return db_order.ConvertToOrder(*customer, purchases), nil
 }
 
 func GetOverbooked() (string, error) {

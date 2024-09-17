@@ -95,7 +95,7 @@ func CreateProduct(name string, description string, price int, file *multipart.F
 
 	newProduct.Image = imageUrl
 
-	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, false, true, newProduct.Category.Id, newProduct.Weighed); err != nil {
+	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, newProduct.Featured, newProduct.Published, newProduct.Category.Id, newProduct.Weighed); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}

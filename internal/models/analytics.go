@@ -279,19 +279,19 @@ func (client *Client) write() {
 
 			data, err := json.Marshal(message)
 			if err != nil {
-				log.Print(err)
+				log.Error(err)
 				return // closes the connection, should we really
 			}
 			// Write a Regular text message to the connection
 			if err := client.socket.WriteMessage(websocket.TextMessage, data); err != nil {
-				log.Print(err)
+				log.Error(err)
 			}
-			log.Print("sent message")
+			log.Debug("sent message")
 		case <-ticker.C:
-			log.Print("ping")
+			log.Debug("Ping")
 			// Send the Ping
 			if err := client.socket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				log.Printf("writemsg: ", err)
+				log.Errorf("writemsg: ", err)
 				return // return to break this goroutine triggeing cleanup
 			}
 		}
@@ -301,6 +301,6 @@ func (client *Client) write() {
 // pongHandler is used to handle PongMessages for the Client
 func (client *Client) pongHandler(pongMsg string) error {
 	// Current time + Pong Wait time
-	log.Print("pong")
+	log.Debug("pong")
 	return client.socket.SetReadDeadline(time.Now().Add(pongWait))
 }

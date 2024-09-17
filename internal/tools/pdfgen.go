@@ -36,6 +36,12 @@ func GenerateInvoice(order *models.Order) (string, error) {
 		Align: align.Center,
 	}))
 
+	m.AddRows(text.NewRow(10, fmt.Sprintf("Pickup Date and Time %s", order.Pickuptime.Format("2006-01-02 03:04 PM")), props.Text{
+		Top:   1,
+		Style: fontstyle.Italic,
+		Align: align.Center,
+	}))
+
 	m.AddRow(7,
 		text.NewCol(3, "Transactions", props.Text{
 			Top:   1.5,
@@ -51,7 +57,7 @@ func GenerateInvoice(order *models.Order) (string, error) {
 	m.AddRow(40,
 		code.NewQrCol(6, order.Id, props.Rect{
 			Center:  true,
-			Percent: 50,
+			Percent: 75,
 		}),
 	)
 
@@ -60,7 +66,7 @@ func GenerateInvoice(order *models.Order) (string, error) {
 		return "", err
 	}
 
-	filename := strings.ReplaceAll(fmt.Sprintf("%s+%s+%s.pdf", order.Id, order.Method, order.Created), " ", "_")
+	filename := strings.ReplaceAll(fmt.Sprintf("%s+%s+%s.pdf", order.Id, order.Method, order.Created.Format("2006-01-02 03:04 PM")), " ", "_")
 
 	err = document.Save(filename)
 	if err != nil {

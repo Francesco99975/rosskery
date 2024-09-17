@@ -216,8 +216,8 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 	}
 
 	total := helpers.FormatPrice(float64(helpers.FoldSlice[models.Purchase, func(models.Purchase, int) int, int](order.Purchases, func(prev models.Purchase, cur int) int {
-		return prev.Product.Price * prev.Quantity
-	}, 0) / 100))
+		return prev.Product.Price*prev.Quantity + cur
+	}, 0)) / 100.0)
 
 	invoice, err := tools.GenerateInvoice(order)
 	if err != nil {
@@ -230,10 +230,10 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 	}
 
 	purchaseDetails := helpers.MapSlice[models.Purchase, tools.ReceiptDetail](order.Purchases, func(p models.Purchase) tools.ReceiptDetail {
-		return tools.ReceiptDetail{Description: fmt.Sprintf("%s - (x%d)", p.Product.Name, p.Quantity), Amount: helpers.FormatPrice(float64(p.Product.Price*p.Quantity) / 100)}
+		return tools.ReceiptDetail{Description: fmt.Sprintf("%s - (x%d)", p.Product.Name, p.Quantity), Amount: helpers.FormatPrice(float64(p.Product.Price*p.Quantity) / 100.0)}
 	})
 
-	err = tools.SendReceipt(order.Customer.Email, tools.Receipt{ProductURL: "rosskery.com", ProductName: "Rosskery", Customer: order.Customer.Fullname, PaymentStatus: payStatus, CreditCardStatementName: "Rosskery", OrderID: order.Id, Date: order.Created.Format(time.RubyDate), ReceiptDetails: purchaseDetails, Total: fmt.Sprint(total), SupportURL: "", CompanyName: "Rosskey", CompanyAddress: "robarra@rosskery.com"}, invoice)
+	err = tools.SendReceipt(order.Customer.Email, tools.Receipt{ProductURL: "rosskery.com", ProductName: "Rosskery", Customer: order.Customer.Fullname, PaymentStatus: payStatus, CreditCardStatementName: "Rosskery", OrderID: order.Id, Date: order.Created.Format("2006-01-02 03:04 PM"), PickupDate: order.Pickuptime.Format("2006-01-02 03:04 PM"), ReceiptDetails: purchaseDetails, Total: fmt.Sprint(total), SupportURL: "", CompanyName: "Rosskey", CompanyAddress: "robarra@rosskery.com"}, invoice)
 	if err != nil {
 		return fmt.Errorf("Error sending receipt: %v", err)
 	}

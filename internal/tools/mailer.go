@@ -23,6 +23,7 @@ type Receipt struct {
 	CreditCardStatementName string          `json:"credit_card_statement_name"`
 	OrderID                 string          `json:"order_id"`
 	Date                    string          `json:"date"`
+	PickupDate              string          `json:"pickup_date"`
 	ReceiptDetails          []ReceiptDetail `json:"receipt_details"`
 	Total                   string          `json:"total"`
 	SupportURL              string          `json:"support_url"`
