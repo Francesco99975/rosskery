@@ -4,52 +4,24 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/views/components"
 import "strconv"
 
-templ CoreHTML(site models.Site) {
+templ CoreHTML(site models.Site, nonce string, stylesheets []string, seoScripts []string, pageScripts []string) {
 	<!DOCTYPE html>
 	<html lang="en">
-		<head>
-			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<title>{ site.AppName } | { site.Title }</title>
-			<link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
-			<meta charset="utf-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-			<meta name="description" content={ site.Metatags.Description }/>
-			<meta name="keywords" content={ site.Metatags.Keywords }/>
-			<meta name="author" content="Francecsco Michele Barranca"/>
-			<meta name="robots" content="index, follow"/>
-			<link rel="canonical" href="https://example.urx.ink"/>
-			<script type="application/ld+json">
-                {
-                    "@context": "http://schema.org",
-                    "@type": "Organization",
-                    "name": "URX",
-                    "url": "https://example.urx.ink",
-                    "logo": "https://example.urx.ink/assets/images/logo.webp",
-                    "contactPoint": [
-                        {
-                            "@type": "ContactPoint",
-                            "telephone": "+1",
-                            "contactType": "Kal"
-                        }
-                    ]
-                }
-                </script>
-			// <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
-			<script type="module" src="/assets/dist/index.js"></script>
-			<script src="https://js.stripe.com/v3/"></script>
-			<link rel="stylesheet" href="/assets/dist/index.css"/>
-		</head>
+		@components.SEO(site, nonce, stylesheets, seoScripts)
 		<body class="w-full flex flex-col justify-stretch items-stretch bg-std relative">
 			<div id="indicator" class="htmx-indicator w-full h-screen absolute bottom-0 right-0 z-50 flex bg-slate-700 opacity-70 justify-center items-center"><div class="loader"></div></div>
 			@components.Header(site.Message)
 			{ children... }
 			@components.Footer(strconv.Itoa(site.Year))
 		</body>
-		<script>
+		<script nonce={ nonce }>
 			if (window.visited) {
 				conn.send(JSON.stringify({ type: "view", payload: "" }));
 			}
 		</script>
+		@components.Script("/assets/dist/header.js", nonce)
+		for _, script := range pageScripts {
+			@components.Script(script, nonce)
+		}
 	</html>
 }

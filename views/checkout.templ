@@ -5,9 +5,8 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/internal/helpers"
 import "fmt"
 
-templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData string) {
-	@layouts.Payment(site, `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-													<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>`) {
+templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData string, csrf string, nonce string) {
+	@layouts.Payment(site, nonce, []string{"assets/dist/checkout.css"}, nil, []string{"/assets/dist/checkout.js"}) {
 		<main class="flex flex-col gap-2 w-full bg-primary min-h-screen">
 			<div class="w-[90%] md:max-w-7xl mx-auto bg-std p-4 md:p-6 rounded-lg shadow-md mt-3">
 				<section class="mb-6 text-primary">
@@ -37,6 +36,7 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData
 					<h2 class="text-xl md:text-2xl font-bold mb-4">Customer Information</h2>
 					<form id="checkout-form" hx-post="/orders" id="checkout-form" class="space-y-4" hx-target="body" hx-boost="true">
 						<input type="hidden" name="dd" id="dd" value={ overbookedData }/>
+						<input type="hidden" name="_csrf" id="_csrf" value={ csrf }/>
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label for="email" class="block text-sm font-medium">Email</label>
@@ -95,78 +95,7 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData
 					</form>
 				</section>
 			</div>
-			<script>
-				function init() {
-					const disabledDatesElem = document.getElementById("dd");
-					var disabledDates = [];
-					if(disabledDatesElem.value.includes(",")) {
-						disabledDates = disabledDatesElem.value.split(",")
-					} else {
-						disabledDates = [disabledDatesElem.value]
-					}
-					disabledDatesElem.remove();
-					flatpickr("#pickuptime", {
-						enableTime: true,
-						minTime: "11:00",
-    				maxTime: "18:30",
-						minDate: new Date().fp_incr(2), // 2 days from now
-						"disable": [
-							function(date) {
-									// Disable Weekends
-									return (date.getDay() === 0 || date.getDay() === 6 || disabledDates.includes(date.toISOString().slice(0, 10)));
 
-							}
-    				],
-						altInput: true,
-						altFormat: "F j, Y, h:i K",
-						dateFormat: "Y-m-d H:i",
-					});
-
-					 const form = window.document.getElementById("checkout-form");
-            if (form) {
-                form.addEventListener("htmx:responseError", function (evt) {
-                	const errorBox = window.document.getElementById("errors");
-									if (errorBox) {
-											errorBox.innerHTML = evt.detail.xhr.responseText;
-											errorBox.style.display = "block";
-									}
-            		});
-            }
-
-					document.addEventListener("htmx:afterOnLoad", function(event) {
-            if (event.target.id === "suggestions") {
-                var suggestionsBox = document.getElementById("suggestions");
-                if (suggestionsBox.innerHTML.trim() !== "") {
-                    suggestionsBox.style.display = "block";
-                } else {
-                    suggestionsBox.style.display = "none";
-                }
-            }
-        	});
-
-					document.getElementById("address").addEventListener("keyup", function(event) {
-						if (document.getElementById("suggestions").style.display === 'none') {
-								document.getElementById("suggestions").style.display = "block";
-						}
-					});
-
-					document.addEventListener("click", function(event) {
-							var suggestionsBox = document.getElementById("suggestions");
-							if (suggestionsBox) {
-								if (!suggestionsBox.contains(event.target) && event.target.id !== "address") {
-									suggestionsBox.style.display = "none";
-								}
-							}
-					});
-
-				}
-
-				if (document.readyState !== "loading") {
-					init();
-				}
-
-				document.addEventListener("DOMContentLoaded", init);
-			</script>
 		</main>
 	}
 }

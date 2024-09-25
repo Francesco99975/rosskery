@@ -74,7 +74,9 @@ func Gallery(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Could not load images in gallery. Error: %s", err.Error()))
 		}
 
-		html, err := helpers.GeneratePage(views.Gallery(models.GetDefaultSite("Gallery", ctx), loadedImages))
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(views.Gallery(models.GetDefaultSite("Gallery", ctx), loadedImages, nonce))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")

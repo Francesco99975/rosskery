@@ -282,8 +282,9 @@ func PaymentWebhook(ctx context.Context) echo.HandlerFunc {
 			}
 
 			data := models.GetDefaultSite("Order Confirmed", ctx)
+			nonce := c.Get("nonce").(string)
 
-			html, err := helpers.GeneratePage(views.Confirmation(data))
+			html, err := helpers.GeneratePage(views.Confirmation(data, nonce))
 
 			if err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
@@ -364,8 +365,9 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 			}
 
 			data := models.GetDefaultSite("Order Confirmed", ctx)
+			nonce := c.Get("nonce").(string)
 
-			html, err := helpers.GeneratePage(views.Confirmation(data))
+			html, err := helpers.GeneratePage(views.Confirmation(data, nonce))
 
 			if err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
@@ -379,7 +381,10 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 
 		data := models.GetDefaultSite("Pay Online", ctx)
 
-		html, err := helpers.GeneratePage(views.Pay(data, os.Getenv("STRIPE_PUBLISHABLE_KEY")))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(views.Pay(data, os.Getenv("STRIPE_PUBLISHABLE_KEY"), csrfToken, nonce))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
 		}

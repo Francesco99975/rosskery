@@ -54,7 +54,10 @@ func Checkout(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get overbooked data")
 		}
 
-		html, err := helpers.GeneratePage(views.Checkout(data, &preview, overbookedData))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(views.Checkout(data, &preview, overbookedData, csrfToken, nonce))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

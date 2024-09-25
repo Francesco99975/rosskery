@@ -24,7 +24,10 @@ func Index(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not fetch new arrivals")
 		}
 
-		html, err := helpers.GeneratePage(views.Index(data, featuredProducts, newArrivals))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(views.Index(data, featuredProducts, newArrivals, csrfToken, nonce))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

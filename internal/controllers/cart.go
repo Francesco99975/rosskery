@@ -47,7 +47,10 @@ func GetCartItems(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, false))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, false, csrfToken, nonce))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page index")
 		}
@@ -63,8 +66,6 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 		// if err != nil {
 		// 	return echo.NewHTTPError(http.StatusBadRequest, "Could not get quantity")
 		// }
-
-		openbag := c.FormValue("openbag") == "true"
 
 		sess, err := session.Get("session", c)
 
@@ -99,7 +100,10 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, openbag))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, false, csrfToken, nonce))
 		if err != nil {
 			return err
 		}
@@ -150,7 +154,10 @@ func RemoveOneFromCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true, csrfToken, nonce))
 		if err != nil {
 			return err
 		}
@@ -201,7 +208,10 @@ func RemoveItemFromCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true, csrfToken, nonce))
 		if err != nil {
 			return err
 		}
@@ -251,7 +261,10 @@ func ClearCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
-		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true))
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(components.Badge(cart.Len(), &preview, true, csrfToken, nonce))
 		if err != nil {
 			return err
 		}

@@ -1,19 +1,18 @@
 import "./css/style.css";
 
 import htmx from "htmx.org";
-import PhotoSwipeLightbox from "photoswipe/lightbox";
-import PhotoSwipe from "photoswipe";
-import "photoswipe/style.css";
 
 import { UCounter } from "./components/ucounter";
 
 declare global {
   interface Window {
     htmx: typeof htmx;
-    PhotoSwipe: typeof PhotoSwipe;
-    PhotoSwipeLightbox: typeof PhotoSwipeLightbox;
     conn: WebSocket;
     visited: boolean;
+  }
+
+  interface Date {
+    fp_incr(increment: number): Date; // Declare the new method
   }
 
   interface HTMLElementTagNameMap {
@@ -22,8 +21,6 @@ declare global {
 }
 
 window.htmx = htmx;
-window.PhotoSwipe = PhotoSwipe;
-window.PhotoSwipeLightbox = PhotoSwipeLightbox;
 window.customElements.define("u-counter", UCounter);
 window.conn = new WebSocket("ws://" + document.location.host + "/ws");
 window.visited = false;

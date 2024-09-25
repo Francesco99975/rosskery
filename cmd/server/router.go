@@ -27,7 +27,6 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.Use(middleware.RemoveTrailingSlash())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
 
-	e.Logger.SetLevel(log.INFO)
 	e.GET("/healthcheck", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
@@ -39,31 +38,50 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	e.GET("/ws", wsManager.ServeWS)
 
+	web := e.Group("")
+
+	web.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
+		CookieName:     "csrf_token",
+		CookiePath:     "/",
+		CookieHTTPOnly: true,
+	}))
+
+	if os.Getenv("GO_ENV") == "development" {
+		e.Logger.SetLevel(log.DEBUG)
+		web.Use(middlewares.SecurityHeadersDev())
+	}
+
+	if os.Getenv("GO_ENV") == "production" {
+		e.Logger.SetLevel(log.WARN)
+		web.Use(middlewares.SecurityHeaders())
+	}
+
 	go wsManager.Run()
 
-	e.GET("/", controllers.Index(ctx), middlewares.IsOnline(ctx))
-	e.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
-	e.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
-	e.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))
-	e.GET("/checkout", controllers.Checkout(ctx), middlewares.IsOnline(ctx))
+	web.GET("/", controllers.Index(ctx), middlewares.IsOnline(ctx))
+	web.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
+	web.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
+	web.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))
+	web.GET("/checkout", controllers.Checkout(ctx), middlewares.IsOnline(ctx))
 
-	e.GET("/bag", controllers.GetCartItems(ctx), middlewares.IsOnline(ctx))
-	e.POST("/bag/:id", controllers.AddToCart(ctx), middlewares.IsOnline(ctx))
-	e.PUT("/bag/:id", controllers.RemoveOneFromCart(ctx), middlewares.IsOnline(ctx))
-	e.DELETE("/bag/:id", controllers.RemoveItemFromCart(ctx), middlewares.IsOnline(ctx))
-	e.DELETE("/bag", controllers.ClearCart(ctx), middlewares.IsOnline(ctx))
-	e.POST("/intent", api.CreatePaymentIntent(ctx), middlewares.IsOnline(ctx))
-	e.POST("/orders", api.IssueOrder(ctx), middlewares.IsOnline(ctx))
-	e.GET("/orders/success", controllers.Success(ctx), middlewares.IsOnline(ctx))
+	web.GET("/bag", controllers.GetCartItems(ctx), middlewares.IsOnline(ctx))
+	web.POST("/bag/:id", controllers.AddToCart(ctx), middlewares.IsOnline(ctx))
+	web.PUT("/bag/:id", controllers.RemoveOneFromCart(ctx), middlewares.IsOnline(ctx))
+	web.DELETE("/bag/:id", controllers.RemoveItemFromCart(ctx), middlewares.IsOnline(ctx))
+	web.DELETE("/bag", controllers.ClearCart(ctx), middlewares.IsOnline(ctx))
+	web.POST("/intent", api.CreatePaymentIntent(ctx), middlewares.IsOnline(ctx))
+	web.POST("/orders", api.IssueOrder(ctx), middlewares.IsOnline(ctx))
+	web.GET("/orders/success", controllers.Success(ctx), middlewares.IsOnline(ctx))
 
-	e.GET("/address", controllers.AddressAutocomplete())
+	web.GET("/address", controllers.AddressAutocomplete())
+	// web.GET("/scripts/:key", controllers.Scripts())
 
-	e.POST("/webhook", api.PaymentWebhook(ctx))
-
-	e.POST("/login", api.Login(wsManager))
-	e.POST("/check", api.CheckToken(wsManager))
+	web.POST("/webhook", api.PaymentWebhook(ctx))
 
 	admin := e.Group("/admin")
+	admin.POST("/login", api.Login(wsManager))
+	admin.POST("/check", api.CheckToken(wsManager))
 	admin.Use(middlewares.IsAuthenticatedAdmin())
 	admin.POST("/signup", api.Signup())
 	admin.GET("/visits", api.GetVisits())

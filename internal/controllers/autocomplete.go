@@ -54,7 +54,9 @@ func AddressAutocomplete() echo.HandlerFunc {
 			suggestions = append(suggestions, prediction.Description)
 		}
 
-		html, err := helpers.GeneratePage(components.Suggestions(suggestions))
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(components.Suggestions(suggestions, nonce))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

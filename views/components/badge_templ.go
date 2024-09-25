@@ -15,7 +15,7 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/internal/helpers"
 import "github.com/Francesco99975/rosskery/views/icons"
 
-func Badge(cartItems int, preview *models.CartPreview, open bool) templ.Component {
+func Badge(cartItems int, preview *models.CartPreview, open bool, csrf string, nonce string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -47,7 +47,15 @@ func Badge(cartItems int, preview *models.CartPreview, open bool) templ.Componen
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" id=\"preview\" class=\"fixed left-0 top-0 w-full max-w-lg m-0 rounded-t-lg p-4 bg-std shadow-lg\"><div class=\"flex items-center justify-between w-full mb-6\"><h2 class=\"text-lg font-bold mb-4 text-primary\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" id=\"preview\" hx-headers=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(fmt.Sprintf("{ \"X-CSRF-Token\": \"%s\" }", csrf)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"fixed left-0 top-0 w-full max-w-lg m-0 rounded-t-lg p-4 bg-std shadow-lg\"><div class=\"flex items-center justify-between w-full mb-6\"><h2 class=\"text-lg font-bold mb-4 text-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -196,37 +204,15 @@ func Badge(cartItems int, preview *models.CartPreview, open bool) templ.Componen
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var15 := `
-				function init() {
-					document.getElementById("close").addEventListener("click", function (event) {
-							var dialog = document.getElementById('preview');
-							var openbagInput = document.getElementById('openbag');
-							if (dialog) {
-								dialog.close();
-								openbagInput.value = "false";
-								event.stopPropagation();
-							}
-					});
-				}
-
-				if(document.readyState !== 'loading') {
-					init();
-				}
-
-
-      	document.addEventListener('DOMContentLoaded', function() {
-        	init();
-      	});
-  `
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
+		templ_7745c5c3_Err = Script("/assets/dist/bag.js", nonce).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></dialog></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

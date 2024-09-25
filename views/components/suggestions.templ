@@ -1,23 +1,10 @@
 package components
 
-templ Suggestions(suggestions []string) {
+templ Suggestions(suggestions []string, nonce string) {
 	<ul class="m-2 max-h-32 overflow-y-auto border border-gray-300 rounded bg-white shadow-lg">
 		for _, suggestion := range suggestions {
 			<li id="suggestion" class="p-2 hover:italic hover:bold cursor-pointer">{ suggestion }</li>
 		}
-		<script>
-      function init() {
-        document.getElementById("suggestion").addEventListener("click", function(event) {
-						document.getElementById("address").value = event.target.textContent;
-						this.style.display = "none";
-			});
-      }
-
-      if (document.readyState !== "loading") {
-        init();
-      }
-
-      document.addEventListener("DOMContentLoaded", init);
-    </script>
+		@Script("/assets/dist/suggestions.js", nonce)
 	</ul>
 }

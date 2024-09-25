@@ -18,8 +18,10 @@ func Shop(ctx context.Context) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not fetch products")
 		}
+		csrfToken := c.Get("csrf").(string)
+		nonce := c.Get("nonce").(string)
 
-		html, err := helpers.GeneratePage(views.Shop(data, products))
+		html, err := helpers.GeneratePage(views.Shop(data, products, csrfToken, nonce))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

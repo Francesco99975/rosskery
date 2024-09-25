@@ -14,7 +14,7 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/internal/helpers"
 import "fmt"
 
-func ProductItem(product models.Product) templ.Component {
+func ProductItem(product models.Product, csrf string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -66,7 +66,15 @@ func ProductItem(product models.Product) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\" class=\"flex flex-col w-full\"><input id=\"openbag\" type=\"hidden\" name=\"openbag\" value=\"false\"> <button type=\"submit\" class=\"tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\" class=\"flex flex-col w-full\"><input type=\"hidden\" name=\"_csrf\" id=\"_csrf\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(csrf))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input id=\"openbag\" type=\"hidden\" name=\"openbag\" value=\"false\"> <button type=\"submit\" class=\"tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

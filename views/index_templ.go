@@ -15,7 +15,7 @@ import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/views/components"
 import "github.com/Francesco99975/rosskery/views/icons"
 
-func Index(site models.Site, featuredProducts []models.Product, newArrivals []models.Product) templ.Component {
+func Index(site models.Site, featuredProducts []models.Product, newArrivals []models.Product, csrf string, nonce string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -105,7 +105,7 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 					return templ_7745c5c3_Err
 				}
 				for _, product := range featuredProducts {
-					templ_7745c5c3_Err = components.ProductItem(product).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = components.ProductItem(product, csrf).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -130,7 +130,7 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 					return templ_7745c5c3_Err
 				}
 				for _, product := range newArrivals {
-					templ_7745c5c3_Err = components.ProductItem(product).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = components.ProductItem(product, csrf).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -149,7 +149,7 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = layouts.CoreHTML(site).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.CoreHTML(site, nonce, nil, nil, nil).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

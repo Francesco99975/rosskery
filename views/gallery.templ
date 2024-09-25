@@ -4,31 +4,14 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/views/layouts"
 import "strconv"
 
-templ Gallery(site models.Site, images []models.Photo) {
-	@layouts.CoreHTML(site) {
+templ Gallery(site models.Site, images []models.Photo, nonce string) {
+	@layouts.CoreHTML(site, nonce, []string{"/assets/dist/gallery.css" }, []string{"/assets/dist/gallery.js"}, nil) {
 		<div class="container mx-auto mt-8 min-h-screen backdrop-blur-md">
 			<div class="pswp-gallery grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4" id="gallery">
 				@Photos(images)
 			</div>
 		</div>
-		<script>
-        function initGallery() {
-           const lightbox = new PhotoSwipeLightbox({
-                gallery: '#gallery',
-                children: 'a',
-                pswpModule: PhotoSwipe
-            });
-            lightbox.init();
-        }
 
-        if(document.readyState !== 'loading') {
-					initGallery();
-				}
-
-				document.addEventListener('DOMContentLoaded', function () {
-						initGallery();
-				});
-    </script>
 	}
 }
 

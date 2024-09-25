@@ -14,7 +14,7 @@ import "github.com/Francesco99975/rosskery/internal/models"
 import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/views/components"
 
-func Shop(site models.Site, products []models.Product) templ.Component {
+func Shop(site models.Site, products []models.Product, csrf string, nonce string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -47,7 +47,7 @@ func Shop(site models.Site, products []models.Product) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			for _, product := range products {
-				templ_7745c5c3_Err = components.ProductItem(product).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.ProductItem(product, csrf).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -61,7 +61,7 @@ func Shop(site models.Site, products []models.Product) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = layouts.CoreHTML(site).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.CoreHTML(site, nonce, nil, nil, nil).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

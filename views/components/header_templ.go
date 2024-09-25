@@ -133,78 +133,7 @@ func Header(message string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var12 := `
-			function init() {
-						var burgerMenu = document.getElementById('burgerMenu');
-            var navLinks = document.getElementById('mobileNavLinks');
-            var bar1 = document.getElementById('bar1');
-            var bar2 = document.getElementById('bar2');
-            var bar3 = document.getElementById('bar3');
-						var bagic = document.getElementById('bagic');
-
-            burgerMenu.addEventListener('click', function () {
-                navLinks.classList.toggle('hidden');
-                  if (bar1.classList.contains('rotate-0')) {
-                    bar1.classList.remove('rotate-0');
-                    bar1.classList.add('rotate-45', 'translate-y-2');
-
-                    bar2.classList.remove('rotate-0');
-                    bar2.classList.add('opacity-0');
-
-                    bar3.classList.remove('rotate-0');
-                    bar3.classList.add('-rotate-45', '-translate-y-2');
-                } else {
-                    bar1.classList.remove('rotate-45', 'translate-y-2');
-                    bar1.classList.add('rotate-0');
-
-                    bar2.classList.remove('opacity-0');
-                    bar3.classList.remove('-rotate-45', '-translate-y-2');
-                    bar3.classList.add('rotate-0');
-                }
-            });
-
-						 // Adjusting span width to wrap the text continuously
-						const span = document.getElementById('mtx');
-						const div = document.getElementById('mbg');
-						if(div && span) {
-							const divWidth = div.offsetWidth;
-							const spanWidth = span.offsetWidth;
-							const clonesNeeded = Math.ceil(divWidth / spanWidth) + 1;
-
-							for (let i = 0; i < clonesNeeded; i++) {
-									const clone = span.cloneNode(true);
-									span.parentNode.appendChild(clone);
-							}
-						}
-
-						bagic.addEventListener('click', function () {
-							var dialog = document.getElementById('preview');
-							var openbagInput = document.getElementById('openbag');
-							if (dialog) {
-								dialog.showModal();
-								openbagInput.value = "true";
-							}
-						});
-			}
-
-			if(document.readyState !== 'loading') {
-				init();
-			}
-
-
-      document.addEventListener('DOMContentLoaded', function() {
-        init();
-      });
-    `
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></header>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -14,7 +14,9 @@ func Success(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		data := models.GetDefaultSite("Payment Successful", ctx)
 
-		html, err := helpers.GeneratePage(views.Confirmation(data))
+		nonce := c.Get("nonce").(string)
+
+		html, err := helpers.GeneratePage(views.Confirmation(data, nonce))
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

@@ -13,7 +13,7 @@ import "bytes"
 import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/internal/models"
 
-func Pay(site models.Site, publishableKey string) templ.Component {
+func Pay(site models.Site, publishableKey string, csrf string, nonce string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -40,6 +40,14 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input type=\"hidden\" id=\"_csrf\" name=\"_csrf\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(csrf))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"payment-element\"></div><div id=\"error-messages\"></div><button type=\"submit\" class=\"mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -49,55 +57,7 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></form></main><script>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Var4 := `
-      function init() {
-         const paymentForm = document.getElementById('stripe-form');
-          const errors = document.getElementById('error-messages');
-          const publishableKeyElem = document.getElementById('pk')
-          const stripe = Stripe(publishableKeyElem.value);
-          publishableKeyElem.remove()
-          fetch("/intent", {
-              method: "POST", headers: { "Content-Type": "application/json" }
-          }).then((res) => res.json()).then((response) => {
-            const elements = stripe.elements({clientSecret: response.clientSecret});
-            const paymentElement = elements.create('payment');
-            paymentElement.mount('#payment-element');
-
-
-            paymentForm.addEventListener('submit', (event) => {
-                event.preventDefault();
-                const { error } = stripe.confirmPayment({elements, confirmParams: {
-                  return_url: window.location.origin + "/orders/success"
-                }
-            });
-
-                if (error) {
-                  errors.innerHTML = error.message;
-                }
-            });
-          });
-
-      }
-
-      if(document.readyState !== 'loading') {
-				init();
-			}
-
-
-      document.addEventListener('DOMContentLoaded', function() {
-        init();
-      });
-
-		`
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></form></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -106,7 +66,7 @@ func Pay(site models.Site, publishableKey string) templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = layouts.Payment(site, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Payment(site, nonce, nil, []string{"https://js.stripe.com/v3/"}, []string{"/assets/dist/payment.js"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
