@@ -18,3 +18,7 @@ if (document.readyState !== "loading") {
 document.addEventListener("DOMContentLoaded", function () {
   initGallery();
 });
+
+document.addEventListener("htmx:afterSettle", function () {
+  initGallery();
+});

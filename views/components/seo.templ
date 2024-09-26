@@ -3,7 +3,7 @@ package components
 import "github.com/Francesco99975/rosskery/internal/models"
 
 templ SEO(site models.Site, nonce string, stylesheets []string, scripts []string) {
-  <head>
+  <head hx-swap="outerHTML">
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ site.AppName } | { site.Title }</title>
 			<link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
@@ -33,6 +33,7 @@ templ SEO(site models.Site, nonce string, stylesheets []string, scripts []string
                 </script>
 
       @Script("/assets/dist/index.js", nonce)
+      @Script("https://js.stripe.com/v3/", nonce)
       for _, script := range scripts {
         @Script(script, nonce)
       }

@@ -1,18 +1,25 @@
-function init() {
-  document
-    .getElementById("suggestion")
-    .addEventListener("click", function (event) {
-      document.getElementById("address").value = event.target.textContent;
-      this.style.display = "none";
+function initSuggestions() {
+  const suggestions = document.getElementById("suggestions");
+  if (suggestions) {
+    suggestions.addEventListener("click", function (event) {
+      const target = event.target as HTMLElement;
+      const addressElem = document.getElementById(
+        "address"
+      ) as HTMLInputElement;
+      if (addressElem) {
+        addressElem.value = target.textContent || "";
+        this.style.display = "none";
+      }
     });
+  }
 }
 
 if (document.readyState !== "loading") {
-  init();
+  initSuggestions();
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", initSuggestions);
 
 document.addEventListener("htmx:afterSettle", function (_) {
-  init();
+  initSuggestions();
 });

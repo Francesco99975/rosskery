@@ -66,7 +66,7 @@ func Pay(site models.Site, publishableKey string, csrf string, nonce string) tem
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = layouts.Payment(site, nonce, nil, []string{"https://js.stripe.com/v3/"}, []string{"/assets/dist/payment.js"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layouts.Payment(site, nonce, nil, nil, []string{"/assets/dist/payment.js"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

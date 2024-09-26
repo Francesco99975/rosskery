@@ -4,7 +4,7 @@ import "github.com/Francesco99975/rosskery/views/layouts"
 import "github.com/Francesco99975/rosskery/internal/models"
 
 templ Pay(site models.Site, publishableKey string, csrf string, nonce string) {
-	@layouts.Payment(site, nonce, nil, []string{ "https://js.stripe.com/v3/" }, []string{ "/assets/dist/payment.js" }) {
+	@layouts.Payment(site, nonce, nil, nil, []string{ "/assets/dist/payment.js" }) {
 		<main class="flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center">
 			<form id="stripe-form" class="rounded-lg shadow-lg bg-std p-5">
 				<input type="hidden" id="pk" name="pk" value={ publishableKey }/>

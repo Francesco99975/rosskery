@@ -15,7 +15,7 @@ interface HtmxResposeErrorEvent extends Event {
 function initCheckout() {
   const disabledDatesElem = document.getElementById("dd") as HTMLInputElement;
   var disabledDates: string[] = [];
-  if (disabledDatesElem.value.includes(",")) {
+  if (disabledDatesElem && disabledDatesElem.value.includes(",")) {
     disabledDates = disabledDatesElem.value.split(",");
   } else {
     disabledDates = [disabledDatesElem.value];
