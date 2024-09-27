@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/api"
@@ -12,6 +13,7 @@ import (
 	"github.com/Francesco99975/rosskery/internal/middlewares"
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/views"
+
 	"github.com/gorilla/sessions"
 
 	"github.com/labstack/echo-contrib/session"
@@ -26,6 +28,12 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RemoveTrailingSlash())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
+
+	e.Use(middlewares.RateLimiter)
+
+	e.Use(middlewares.BrotliMiddleware)
+
+	e.Use(middleware.Gzip())
 
 	e.GET("/healthcheck", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
@@ -60,6 +68,8 @@ func createRouter(ctx context.Context) *echo.Echo {
 	go wsManager.Run()
 
 	web.GET("/", controllers.Index(ctx), middlewares.IsOnline(ctx))
+	web.GET("/policy", controllers.PrivacyPolicy(ctx), middlewares.IsOnline(ctx))
+	web.GET("/terms", controllers.Terms(ctx), middlewares.IsOnline(ctx))
 	web.GET("/gallery", controllers.Gallery(ctx), middlewares.IsOnline(ctx))
 	web.GET("/photos", controllers.Photos(), middlewares.IsOnline(ctx))
 	web.GET("/shop", controllers.Shop(ctx), middlewares.IsOnline(ctx))
@@ -75,7 +85,6 @@ func createRouter(ctx context.Context) *echo.Echo {
 	web.GET("/orders/success", controllers.Success(ctx), middlewares.IsOnline(ctx))
 
 	web.GET("/address", controllers.AddressAutocomplete())
-	// web.GET("/scripts/:key", controllers.Scripts())
 
 	web.POST("/webhook", api.PaymentWebhook(ctx))
 
@@ -118,20 +127,38 @@ func createRouter(ctx context.Context) *echo.Echo {
 }
 
 func serverErrorHandler(err error, c echo.Context) {
+	// Default to internal server error (500)
 	code := http.StatusInternalServerError
+	var message interface{} = "An unexpected error occurred"
+
+	// Check if it's an echo.HTTPError
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
+		message = he.Message
 	}
-	data := models.GetDefaultSite("Error", context.Background())
 
-	buf := bytes.NewBuffer(nil)
-	if code < 500 {
-		_ = views.ClientError(data, err).Render(context.Background(), buf)
-
+	// Check the Accept header to decide the response format
+	if strings.Contains(c.Request().Header.Get("Accept"), "application/json") {
+		// Respond with JSON if the client prefers JSON
+		_ = c.JSON(code, map[string]interface{}{
+			"error":   true,
+			"message": message,
+			"status":  code,
+		})
 	} else {
-		_ = views.ServerError(data, err).Render(context.Background(), buf)
+		// Prepare data for rendering the error page (HTML)
+		data := models.GetDefaultSite("Error", context.Background())
+
+		// Buffer to hold the HTML content (in case of HTML response)
+		buf := bytes.NewBuffer(nil)
+
+		// Render based on the status code
+		if code >= 500 {
+			_ = views.ServerError(data, err).Render(context.Background(), buf)
+		} else {
+			_ = views.ClientError(data, err).Render(context.Background(), buf)
+		}
+		// Respond with HTML (default) if the client prefers HTML
+		_ = c.Blob(code, "text/html; charset=utf-8", buf.Bytes())
 	}
-
-	_ = c.Blob(code, "text/html; charset=utf-8", buf.Bytes())
-
 }

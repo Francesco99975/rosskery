@@ -34,8 +34,10 @@ require (
 )
 
 require (
+	github.com/andybalholm/brotli v1.1.0
 	github.com/chai2010/webp v1.1.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/brotli/go/cbrotli v0.0.0-20240919160234-350100a5bb9d
 	github.com/gorilla/websocket v1.5.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/johnfercher/maroto/v2 v2.0.7
