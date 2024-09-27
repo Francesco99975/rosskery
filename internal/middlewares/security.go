@@ -42,7 +42,7 @@ func SecurityHeadersDev() echo.MiddlewareFunc {
 			c.Set("nonce", nonce)
 
 			// Set security headers
-			c.Response().Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'nonce-"+nonce+"' 'strict-dynamic' 'unsafe-eval' https://js.stripe.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css https://cdn.jsdelivr.net/npm/flatpickr; connect-src 'self' https://api.stripe.com https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css https://cdn.jsdelivr.net/npm/flatpickr; style-src 'self' 'unsafe-inline'; frame-src https://js.stripe.com")
+			c.Response().Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'nonce-"+nonce+"' 'strict-dynamic' 'unsafe-eval' https://js.stripe.com; connect-src 'self' https://api.stripe.com; style-src 'self' 'unsafe-inline'; frame-src https://js.stripe.com")
 			c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 			c.Response().Header().Set("X-Frame-Options", "SAMEORIGIN") // Allow iframes for easier testing
 			// No Strict-Transport-Security for local development
