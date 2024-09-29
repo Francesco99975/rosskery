@@ -36,6 +36,7 @@ type ProductDto struct {
 	Published   bool   `json:"published"`
 	CategoryId  string `json:"categoryId"`
 	Weighed     bool   `json:"weighed"`
+	Lv          int    `json:"lv"`
 }
 
 func (p *ProductDto) Validate() error {
@@ -60,6 +61,10 @@ func (p *ProductDto) Validate() error {
 	}
 
 	p.Name = strings.ToLower(p.Name)
+
+	if p.Lv < 1 {
+		return fmt.Errorf("Product Lv cannot be negative or zero")
+	}
 
 	return nil
 }

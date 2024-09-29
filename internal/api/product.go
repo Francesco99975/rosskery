@@ -20,12 +20,18 @@ func AddProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing price: %v", err), Errors: []string{err.Error()}})
 		}
 
+		parsedLv, err := strconv.Atoi(c.FormValue("lv"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing labor value: %v", err), Errors: []string{err.Error()}})
+		}
+
 		payload := models.ProductDto{
 			Name:        c.FormValue("name"),
 			Description: c.FormValue("description"),
 			Price:       parsedPrice,
 			CategoryId:  c.FormValue("category_id"),
 			Weighed:     c.FormValue("weighed") == "true",
+			Lv:          parsedLv,
 		}
 
 		if err := payload.Validate(); err != nil {
@@ -43,7 +49,7 @@ func AddProduct() echo.HandlerFunc {
 
 		file := uploadedFiles[0]
 
-		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, file, payload.CategoryId, payload.Weighed)
+		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, file, payload.CategoryId, payload.Weighed, payload.Lv)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating product: %v", err), Errors: []string{err.Error()}})
 		}
@@ -88,12 +94,18 @@ func UpdateProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing price: %v", err), Errors: []string{err.Error()}})
 		}
 
+		parsedLv, err := strconv.Atoi(c.FormValue("lv"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing labor value: %v", err), Errors: []string{err.Error()}})
+		}
+
 		payload := models.ProductDto{
 			Name:        c.FormValue("name"),
 			Description: c.FormValue("description"),
 			Price:       parsedPrice,
 			CategoryId:  c.FormValue("category_id"),
 			Weighed:     c.FormValue("weighed") == "true",
+			Lv:          parsedLv,
 			Published:   c.FormValue("published") == "true",
 			Featured:    c.FormValue("featured") == "true",
 		}
@@ -120,7 +132,7 @@ func UpdateProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Product not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
-		products, err := product.Update(payload.Name, payload.Description, payload.Price, file, payload.Featured, payload.Published, payload.CategoryId, payload.Weighed)
+		products, err := product.Update(payload.Name, payload.Description, payload.Price, file, payload.Featured, payload.Published, payload.CategoryId, payload.Weighed, payload.Lv)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while updating product: %v", err), Errors: []string{err.Error()}})
 		}

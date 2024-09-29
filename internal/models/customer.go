@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -53,21 +54,12 @@ func CustomerExists(email string) (bool, error) {
 	return exists, nil
 }
 
-func CreateCustomer(fullname string, email string, address string, phone string) (*DbCustomer, error) {
+func CreateCustomer(tx *sqlx.Tx, fullname string, email string, address string, phone string) (*DbCustomer, error) {
 	statement := "INSERT INTO customers (id, fullname, email, address, phone) VALUES ($1, $2, $3, $4, $5)"
 
 	c := &DbCustomer{Id: uuid.NewV4().String(), Fullname: fullname, Email: email, Address: address, Phone: phone}
 
-	tx := db.MustBegin()
-
 	if _, err := tx.Exec(statement, c.Id, c.Fullname, c.Email, c.Address, c.Phone); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -174,7 +166,7 @@ func GetCustomerByEmail(email string) (*DbCustomer, error) {
 	return &customer, nil
 }
 
-func (customer *DbCustomer) Update(fullname string, email string, address string, phone string) error {
+func (customer *DbCustomer) Update(tx *sqlx.Tx, fullname string, email string, address string, phone string) error {
 	statement := "UPDATE customers SET fullname = $1, email = $2, address = $3, phone = $4 WHERE id = $5"
 
 	customer.Fullname = fullname
@@ -182,16 +174,7 @@ func (customer *DbCustomer) Update(fullname string, email string, address string
 	customer.Address = address
 	customer.Phone = phone
 
-	tx := db.MustBegin()
-
 	if _, err := tx.Exec(statement, customer.Fullname, customer.Email, customer.Address, customer.Phone, customer.Id); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
-		}
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return rollbackErr
 		}

@@ -18,6 +18,7 @@ type Product struct {
 	Published   bool      `json:"published"`
 	Category    Category  `json:"category"`
 	Weighed     bool      `json:"weighed"`
+	Lv          int       `json:"lv"`
 	Created     time.Time `json:"created"`
 	Updated     time.Time `json:"updated"`
 }
@@ -33,6 +34,7 @@ type DbProduct struct {
 	CategoryId   string    `json:"category_id" db:"category_id"`
 	CategoryName string    `json:"category_name" db:"category_name"`
 	Weighed      bool      `json:"weighed"`
+	Lv           int       `json:"lv"`
 	Created      time.Time `json:"created"`
 	Updated      time.Time `json:"updated"`
 }
@@ -48,6 +50,7 @@ func (dbp *DbProduct) ConvertToProduct() *Product {
 		Published:   dbp.Published,
 		Category:    Category{Id: dbp.CategoryId, Name: dbp.CategoryName},
 		Weighed:     dbp.Weighed,
+		Lv:          dbp.Lv,
 		Created:     dbp.Created,
 		Updated:     dbp.Updated,
 	}
@@ -62,6 +65,7 @@ func ProductExists(name string) bool {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -76,8 +80,8 @@ func ProductExists(name string) bool {
 	return err != nil
 }
 
-func CreateProduct(name string, description string, price int, file *multipart.FileHeader, categoryId string, weighed bool) ([]Product, error) {
-	statement := "INSERT INTO products(id, name, description, price, image, featured, published, category, weighed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+func CreateProduct(name string, description string, price int, file *multipart.FileHeader, categoryId string, weighed bool, lv int) ([]Product, error) {
+	statement := "INSERT INTO products(id, name, description, price, image, featured, published, category, weighed, lv) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 
 	tx := db.MustBegin()
 
@@ -86,7 +90,7 @@ func CreateProduct(name string, description string, price int, file *multipart.F
 		return nil, err
 	}
 
-	newProduct := &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Featured: false, Published: true, Category: *category, Weighed: weighed}
+	newProduct := &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Featured: false, Published: true, Category: *category, Weighed: weighed, Lv: lv}
 
 	imageUrl, err := helpers.ImageUpload(file, "products", newProduct.Id)
 	if err != nil {
@@ -95,7 +99,7 @@ func CreateProduct(name string, description string, price int, file *multipart.F
 
 	newProduct.Image = imageUrl
 
-	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, newProduct.Featured, newProduct.Published, newProduct.Category.Id, newProduct.Weighed); err != nil {
+	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, newProduct.Featured, newProduct.Published, newProduct.Category.Id, newProduct.Weighed, newProduct.Lv); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -129,6 +133,7 @@ func GetProducts() ([]Product, error) {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -158,6 +163,7 @@ func GetPublishedProducts() ([]Product, error) {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -188,6 +194,7 @@ func GetFeaturedProducts() ([]Product, error) {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -218,6 +225,7 @@ func GetNewArrivals() ([]Product, error) {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -246,6 +254,7 @@ func GetProduct(id string) (*Product, error) {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -275,6 +284,7 @@ func GetProductsByCategory(categoryId string) ([]Product, error) {
 									p.featured AS featured,
 									p.published AS published,
 									p.weighed AS weighed,
+									p.lv AS lv,
 									p.created AS created,
 									p.updated AS updated,
 									c.id AS category_id,
@@ -295,8 +305,8 @@ func GetProductsByCategory(categoryId string) ([]Product, error) {
 	}), nil
 }
 
-func (product *Product) Update(name string, description string, price int, file *multipart.FileHeader, featured bool, published bool, categoryId string, weighed bool) ([]Product, error) {
-	statement := "UPDATE products SET name = $1, description = $2, price = $3, image = $4, featured = $5, published = $6, category = $7, weighed = $8 WHERE id = $9"
+func (product *Product) Update(name string, description string, price int, file *multipart.FileHeader, featured bool, published bool, categoryId string, weighed bool, lv int) ([]Product, error) {
+	statement := "UPDATE products SET name = $1, description = $2, price = $3, image = $4, featured = $5, published = $6, category = $7, weighed = $8, lv = $9 WHERE id = $10"
 
 	category, err := GetCategory(categoryId)
 	if err != nil {
@@ -320,10 +330,11 @@ func (product *Product) Update(name string, description string, price int, file 
 	product.Published = published
 	product.Category = *category
 	product.Weighed = weighed
+	product.Lv = lv
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed, product.Id); err != nil {
+	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed, product.Lv, product.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}

@@ -98,6 +98,12 @@ func Setup(dsn string) {
 
 }
 
+func GetNewTx() *sqlx.Tx {
+	tx := db.MustBegin()
+
+	return tx
+}
+
 type Count struct {
 	Date  time.Time
 	Count int

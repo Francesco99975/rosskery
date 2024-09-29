@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/gommon/log"
 
 	uuid "github.com/satori/go.uuid"
@@ -37,7 +38,7 @@ func (dbp *DbPurchase) ConvertToProduct(product Product) *Purchase {
 	}
 }
 
-func CreatePurchase(orderId string, productId string, quantity int) (*Purchase, error) {
+func CreatePurchase(tx *sqlx.Tx, orderId string, productId string, quantity int) (*Purchase, error) {
 	statement := "INSERT INTO purchases (id, productid, quantity, orderid) VALUES ($1, $2, $3, $4)"
 
 	product, err := GetProduct(productId)
@@ -47,20 +48,11 @@ func CreatePurchase(orderId string, productId string, quantity int) (*Purchase, 
 
 	newPurchase := &Purchase{Id: uuid.NewV4().String(), Product: *product, Quantity: quantity}
 
-	tx := db.MustBegin()
-
 	if _, err := tx.Exec(statement, newPurchase.Id, newPurchase.Product.Id, newPurchase.Quantity, orderId); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
 		return nil, fmt.Errorf("Error inserting purchase: %s", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, fmt.Errorf("Error committing purchase: %s", err)
 	}
 
 	return newPurchase, nil
@@ -218,7 +210,7 @@ func (dbp *DbOrder) ConvertToOrder(customer Customer, purchases []Purchase) *Ord
 	}
 }
 
-func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
+func CreateOrder(tx *sqlx.Tx, customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled, method) VALUES ($1, $2, $3, $4, $5)"
 
 	customer, err := GetDbCustomer(customerId)
@@ -228,8 +220,6 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 
 	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *(*customer).ConvertToCustomer(time.Time{}, 0), Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false, Method: string(method)}
 
-	tx := db.MustBegin()
-
 	if _, err := tx.Exec(statement, newOrder.Id, newOrder.Customer.Id, newOrder.Pickuptime, newOrder.Fulfilled, newOrder.Method); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
@@ -237,15 +227,8 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, err
-	}
-
 	for i, item := range items {
-		purchase, err := CreatePurchase(newOrder.Id, item.ProductId, item.Quantity)
+		purchase, err := CreatePurchase(tx, newOrder.Id, item.ProductId, item.Quantity)
 		if err != nil {
 			return nil, err
 		}

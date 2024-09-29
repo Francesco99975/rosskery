@@ -178,8 +178,10 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 		return fmt.Errorf("Error checking if customer exists: %v", err)
 	}
 
+	tx := models.GetNewTx()
+
 	if !exists {
-		customer, err = models.CreateCustomer(payload.Fullname, payload.Email, payload.Address, payload.Phone)
+		customer, err = models.CreateCustomer(tx, payload.Fullname, payload.Email, payload.Address, payload.Phone)
 		if err != nil {
 			return fmt.Errorf("Error creating customer: %v", err)
 		}
@@ -190,7 +192,7 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 			return fmt.Errorf("Error fetching customer: %v", err)
 		}
 
-		err := customer.Update(payload.Fullname, payload.Email, payload.Address, payload.Phone)
+		err := customer.Update(tx, payload.Fullname, payload.Email, payload.Address, payload.Phone)
 		if err != nil {
 			return fmt.Errorf("Error updating customer: %v", err)
 		}
@@ -206,9 +208,16 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 		return fmt.Errorf("Error fetching purchases: %v", err)
 	}
 
-	order, err := models.CreateOrder(customer.Id, payload.Pickuptime, purchases, payload.Method)
+	order, err := models.CreateOrder(tx, customer.Id, payload.Pickuptime, purchases, payload.Method)
 	if err != nil {
 		return fmt.Errorf("Error creating order: %v", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("Error rolling back transaction: %v", rollbackErr)
+		}
+		return fmt.Errorf("Error committing transaction: %v", err)
 	}
 
 	if err = cart.Clear(ctx); err != nil {
