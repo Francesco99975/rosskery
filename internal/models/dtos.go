@@ -145,7 +145,7 @@ func (o *OrderDto) Validate() error {
 	}
 
 	// Format phone number
-	formattedPhone := phoneRegex.ReplaceAllString(phoneCleaned, "($1) $2-$3")
+	formattedPhone := fmt.Sprintf("(%s) %s-%s", phoneCleaned[:3], phoneCleaned[3:6], phoneCleaned[6:])
 
 	o.Phone = formattedPhone
 
@@ -156,7 +156,9 @@ func (o *OrderDto) Validate() error {
 		return fmt.Errorf("Address is not a valid address")
 	}
 
-	formattedAddress := addressRegex.ReplaceAllString(o.Address, "$1")
+	formattedAddress := strings.TrimSpace(o.Address)
+	formattedAddress = regexp.MustCompile(`\s{2,}`).ReplaceAllString(formattedAddress, " ") // Replace multiple spaces with a single space
+	formattedAddress = regexp.MustCompile(`,\s*`).ReplaceAllString(formattedAddress, ", ")  // Ensure a single space after commas
 
 	type GeocodeResponse struct {
 		Results []struct {

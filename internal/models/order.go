@@ -210,13 +210,14 @@ func (dbp *DbOrder) ConvertToOrder(customer Customer, purchases []Purchase) *Ord
 	}
 }
 
-func CreateOrder(tx *sqlx.Tx, customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
+func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem, method PaymentMethod) (*Order, error) {
 	statement := "INSERT INTO orders (id, customer, pickuptime, fulfilled, method) VALUES ($1, $2, $3, $4, $5)"
 
 	customer, err := GetDbCustomer(customerId)
 	if err != nil {
 		return nil, err
 	}
+	tx := db.MustBegin()
 
 	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *(*customer).ConvertToCustomer(time.Time{}, 0), Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false, Method: string(method)}
 
@@ -234,6 +235,13 @@ func CreateOrder(tx *sqlx.Tx, customerId string, pickuptime time.Time, items []P
 		}
 
 		newOrder.Purchases[i] = *purchase
+	}
+
+	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return nil, fmt.Errorf("Error rolling back transaction: %v", rollbackErr)
+		}
+		return nil, fmt.Errorf("Error committing transaction: %v", err)
 	}
 
 	createdOrder, err := GetOrder(newOrder.Id)
