@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"time"
@@ -36,7 +35,6 @@ func main() {
 	e := createRouter(ctx)
 
 	go func() {
-		fmt.Printf("Running Server on port %s", port)
 		e.Logger.Fatal(e.Start(":" + port))
 	}()
 
