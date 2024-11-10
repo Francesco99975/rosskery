@@ -86,6 +86,32 @@ type VisitsResponse struct {
 	Data                Dataset        `json:"data"`
 }
 
+type VisitsStats struct {
+	Current             int    `json:"current"`
+	TotalViews          int    `json:"total_views"`
+	BounceRate          string `json:"bounce_rate"`
+	AvgVisitDuration    int    `json:"avg_visit_duration"` //seconds
+	TotalVisits         int    `json:"total_visits"`
+	TotalUniqueVisitors int    `json:"total_unique_visitors"`
+}
+
+type VisitsStandings struct {
+	VisitOrigins  []VisitOrigin  `json:"visit_origins"`
+	DeviceOrigins []DeviceOrigin `json:"device_origins"`
+}
+
+type Graph struct {
+	Data Dataset `json:"data"`
+}
+
+type PieGraph struct {
+	Pie Pie `json:"pie"`
+}
+
+type Graphs struct {
+	Datapoints []Dataset `json:"datapoints"`
+}
+
 func (v *Visit) Archive() error {
 	v.Duration = int(time.Since(v.Date).Milliseconds())
 

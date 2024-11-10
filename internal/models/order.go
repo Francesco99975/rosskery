@@ -448,6 +448,14 @@ type FinancesResponse struct {
 	FloppedGainers []RankedGainer `json:"flopped_gainers"`
 }
 
+type OrdersStandingsResponse struct {
+	RankedOrders   []RankedOrder  `json:"ranked_orders"`
+	ToppedSellers  []RankedSeller `json:"topped_sellers"`
+	ToppedGainers  []RankedGainer `json:"topped_gainers"`
+	FloppedSellers []RankedSeller `json:"flopped_sellers"`
+	FloppedGainers []RankedGainer `json:"flopped_gainers"`
+}
+
 func GetOrdersAmount() (int, error) {
 	var amount int
 	statement := "SELECT COUNT(*) FROM orders"

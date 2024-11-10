@@ -23,6 +23,58 @@ import (
 	"github.com/stripe/stripe-go/v78/webhook"
 )
 
+func GetOrdersData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		timeframeStr := c.QueryParam("timeframe")
+		methodStr := c.QueryParam("method")
+		status := c.QueryParam("status") == "true"
+
+		timeframe := models.ParseTimeframe(timeframeStr)
+		method := models.ParsePaymentMethod(methodStr)
+
+		ordersData, err := models.GetOrdersData(timeframe, method, status)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching orders data: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.Graph{Data: ordersData})
+	}
+}
+
+func GetMonetaryData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		timeframeStr := c.QueryParam("timeframe")
+		methodStr := c.QueryParam("method")
+		status := c.QueryParam("status") == "true"
+
+		timeframe := models.ParseTimeframe(timeframeStr)
+		method := models.ParsePaymentMethod(methodStr)
+
+		monetaryData, err := models.GetMonetaryData(timeframe, method, status)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching monetary data: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.Graph{Data: monetaryData})
+	}
+}
+
+func GetPaymentData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		timeframeStr := c.QueryParam("timeframe")
+		status := c.QueryParam("status") == "true"
+
+		timeframe := models.ParseTimeframe(timeframeStr)
+
+		preferredMethodData, err := models.GetPreferredMethodData(timeframe, status)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching preferred method data: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.Graphs{Datapoints: preferredMethodData})
+	}
+}
+
 func GetFinances() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
@@ -109,6 +161,59 @@ func GetFinances() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, models.FinancesResponse{OrdersAmount: numberOfOrders, OutstandingCash: outstanding, PendingMoney: pending, Gains: gains, Total: total, OrdersData: ordersData, MonetaryData: monetaryData, PreferredMethodData: preferredMethodData, FilledPie: filledPie, MethodPie: paymentMethodPie, RankedOrders: topOrders, ToppedSellers: topSellers, FloppedSellers: flopSellers, ToppedGainers: topGainers, FloppedGainers: flopGainers})
+	}
+}
+
+func GetOrdersStatusPie() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		filledPie, err := models.GetFilledPie()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching filled pie: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.PieGraph{Pie: filledPie})
+	}
+}
+
+func GetOrdersPaymentPie() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		paymentMethodPie, err := models.GetMethodsPie()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching payment method pie: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.PieGraph{Pie: paymentMethodPie})
+	}
+}
+
+func GetOrdersStandings() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		topOrders, err := models.GetTopOrders()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching top orders: %v", err), Errors: []string{err.Error()}})
+		}
+
+		topSellers, err := models.GetTopSellers()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching top sellers: %v", err), Errors: []string{err.Error()}})
+		}
+
+		flopSellers, err := models.GetFlopSellers()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching flop sellers: %v", err), Errors: []string{err.Error()}})
+		}
+
+		topGainers, err := models.GetTopGainers()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching top gainers: %v", err), Errors: []string{err.Error()}})
+		}
+
+		flopGainers, err := models.GetFlopGainers()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching flop gainers: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.OrdersStandingsResponse{RankedOrders: topOrders, ToppedSellers: topSellers, FloppedSellers: flopSellers, ToppedGainers: topGainers, FloppedGainers: flopGainers})
 	}
 }
 
