@@ -164,6 +164,37 @@ func GetFinances() echo.HandlerFunc {
 	}
 }
 
+func GetFinancesStats() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		numberOfOrders, err := models.GetOrdersAmount()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching orders amount: %v", err), Errors: []string{err.Error()}})
+		}
+
+		outstanding, err := models.GetOutstandingCash()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching outstanding cash: %v", err), Errors: []string{err.Error()}})
+		}
+
+		pending, err := models.GetPendingMoney()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching pending money: %v", err), Errors: []string{err.Error()}})
+		}
+
+		gains, err := models.GetGains()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching gains: %v", err), Errors: []string{err.Error()}})
+		}
+
+		total, err := models.GetTotalFromOrders()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching total from orders: %v", err), Errors: []string{err.Error()}})
+		}
+
+		return c.JSON(http.StatusOK, models.FinancesStats{OrdersAmount: numberOfOrders, OutstandingCash: outstanding, PendingMoney: pending, Gains: gains, Total: total})
+	}
+}
+
 func GetOrdersStatusPie() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		filledPie, err := models.GetFilledPie()

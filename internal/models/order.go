@@ -448,6 +448,14 @@ type FinancesResponse struct {
 	FloppedGainers []RankedGainer `json:"flopped_gainers"`
 }
 
+type FinancesStats struct {
+	OrdersAmount    int `json:"orders_amount"`    // All orders made
+	OutstandingCash int `json:"outstanding_cash"` // Unpaid cash orders
+	PendingMoney    int `json:"pending_money"`    // Paid online but still unfulfilled
+	Gains           int `json:"gains"`            // All money from fulfilled orders
+	Total           int `json:"total"`
+}
+
 type OrdersStandingsResponse struct {
 	RankedOrders   []RankedOrder  `json:"ranked_orders"`
 	ToppedSellers  []RankedSeller `json:"topped_sellers"`
