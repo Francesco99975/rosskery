@@ -7,6 +7,7 @@ import (
 
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type BasicVisitsResponse struct {
@@ -145,6 +146,8 @@ func GetVisitGraph() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching visits data: %v", err), Errors: []string{err.Error()}})
 		}
+
+		log.Infof("Visits data: %v", data)
 
 		return c.JSON(http.StatusOK, models.Graph{Data: data})
 	}

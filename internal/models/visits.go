@@ -153,7 +153,6 @@ func GetVisits() ([]Visit, error) {
 }
 
 func GetVisitsByQualityAndTimeframe(quality VisitQuality, timeframe Timeframe) (Dataset, error) {
-
 	var results []Count = make([]Count, 0)
 	var whereStm string
 	horizontal, err := GetHorizonalDataAndQueryByTimeframe("date", timeframe, &whereStm)

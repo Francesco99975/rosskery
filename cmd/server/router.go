@@ -111,6 +111,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin.GET("/finances/payments", api.GetPaymentData())
 	admin.GET("/finances/status", api.GetOrdersStatusPie())
 	admin.GET("/finances/methods", api.GetOrdersPaymentPie())
+	admin.GET("/finances/standings", api.GetOrdersStandings())
 	admin.GET("/orders", api.Orders())
 	admin.GET("/orders/:id", api.Order())
 	admin.GET("/fulfill/:id", api.FulfillOrder())
