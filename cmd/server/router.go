@@ -126,10 +126,10 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin.GET("/users", api.Users())
 	admin.GET("/users/:id", api.User())
 	admin.DELETE("/users/:id", api.DeleteUser())
-	admin.GET("/setting", api.GetSetting(ctx))
-	admin.PUT("/setting", api.SetSetting(ctx))
+	admin.GET("/setting/:name", api.GetSetting(ctx))
+	admin.PUT("/setting", api.SetSetting(ctx, wsManager))
 	admin.GET("/message", api.GetMessage(ctx))
-	admin.PUT("/message", api.SetMessage(ctx))
+	admin.PUT("/message", api.SetMessage(ctx, wsManager))
 
 	e.HTTPErrorHandler = serverErrorHandler
 

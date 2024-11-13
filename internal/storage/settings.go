@@ -7,3 +7,9 @@ const (
 	Operative Setting = "operative"
 	Message   Setting = "message"
 )
+
+type Settings struct {
+	Online    bool
+	Operative bool
+	Message   string
+}

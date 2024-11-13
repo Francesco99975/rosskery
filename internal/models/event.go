@@ -18,6 +18,7 @@ const (
 	EventView              = "view"
 	EventAuthAdmin         = "authadmin"
 	EventUpdateVisitsAdmin = "uvadmin"
+	EventSettingsChanged   = "settingschanged"
 )
 
 func SendVisitHandler(event Event, client *Client) error {
@@ -78,6 +79,22 @@ func SendViewHandler(event Event, client *Client) error {
 	for client := range client.manager.clients {
 		// Only send to clients inside the same chatroom
 		if client.room == "admin" {
+			client.egress <- outgoingEvent
+		}
+
+	}
+	return nil
+}
+
+func SendSettingsChangeHandler(event Event, client *Client) error {
+
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = EventSettingsChanged
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room != "admin" {
 			client.egress <- outgoingEvent
 		}
 

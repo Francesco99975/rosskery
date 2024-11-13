@@ -130,6 +130,8 @@ func (m *ConnectionManager) setupEventHandlers() {
 	m.handlers[EventVisit] = SendVisitHandler
 	m.handlers[EventView] = SendViewHandler
 	m.handlers[EventAuthAdmin] = SendOtpHandler
+	m.handlers[EventUpdateVisitsAdmin] = SendVisitHandler
+	m.handlers[EventSettingsChanged] = SendSettingsChangeHandler
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
@@ -143,6 +145,12 @@ func (m *ConnectionManager) routeEvent(event Event, c *Client) error {
 		return nil
 	} else {
 		return errors.New("this event type is not supported")
+	}
+}
+
+func (cm *ConnectionManager) BroadcastEvent(event Event) {
+	for client := range cm.clients {
+		client.egress <- event
 	}
 }
 
