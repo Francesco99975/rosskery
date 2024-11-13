@@ -336,7 +336,7 @@ func GetOverbooked() (string, error) {
 	return strings.Join(dates, ","), nil
 }
 
-func (o *Order) Fulfill() ([]Order, error) {
+func (o *Order) Fulfill() (*Order, error) {
 	statement := "UPDATE orders SET fulfilled = $1 WHERE id = $2"
 
 	tx := db.MustBegin()
@@ -355,12 +355,12 @@ func (o *Order) Fulfill() ([]Order, error) {
 		return nil, err
 	}
 
-	updatedOrders, err := GetOrders()
+	updatedOrder, err := GetOrder(o.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return updatedOrders, nil
+	return updatedOrder, nil
 }
 
 func (o *Order) CalculateTotal() int {
@@ -685,16 +685,18 @@ func GetTopSellers() ([]RankedSeller, error) {
 	var results []RankedSeller = make([]RankedSeller, 0)
 
 	statement := `SELECT
-								pr.id AS id,
-								pr.name AS name,
-								pr.category AS category,
-								COALESCE(SUM(p.quantity), 0) AS sold
+										pr.id AS id,
+										pr.name AS name,
+										cat.name AS category,
+										COALESCE(SUM(p.quantity), 0) AS sold
 								FROM
 										products pr
 								JOIN
+										categories cat ON pr.category = cat.id
+								LEFT JOIN
 										purchases p ON pr.id = p.productid
 								GROUP BY
-										pr.id, pr.name, pr.category
+										pr.id, pr.name, cat.name
 								ORDER BY
 										sold DESC
 								LIMIT 10`
@@ -741,16 +743,18 @@ func GetTopGainers() ([]RankedGainer, error) {
 	var results []RankedGainer = make([]RankedGainer, 0)
 
 	statement := `SELECT
-								pr.id AS id,
-								pr.name AS name,
-								pr.category AS category,
-								COALESCE(SUM(p.quantity * pr.price), 0) AS gained
+										pr.id AS id,
+										pr.name AS name,
+										cat.name AS category,
+										COALESCE(SUM(p.quantity * pr.price), 0) AS gained
 								FROM
 										products pr
 								JOIN
+										categories cat ON pr.category = cat.id
+								LEFT JOIN
 										purchases p ON pr.id = p.productid
 								GROUP BY
-										pr.id, pr.name, pr.category
+										pr.id, pr.name, cat.name
 								ORDER BY
 										gained DESC
 								LIMIT 10`
@@ -769,14 +773,16 @@ func GetFlopSellers() ([]RankedSeller, error) {
 	statement := `SELECT
 								pr.id AS id,
 								pr.name AS name,
-								pr.category AS category,
+								cat.name AS category,
 								COALESCE(SUM(p.quantity), 0) AS sold
 								FROM
 										products pr
 								JOIN
+										categories cat ON pr.category = cat.id
+								LEFT JOIN
 										purchases p ON pr.id = p.productid
 								GROUP BY
-										pr.id, pr.name, pr.category
+										pr.id, pr.name, cat.name
 								ORDER BY
 										sold ASC
 								LIMIT 10`
@@ -795,14 +801,16 @@ func GetFlopGainers() ([]RankedGainer, error) {
 	statement := `SELECT
 								pr.id AS id,
 								pr.name AS name,
-								pr.category AS category,
+								cat.name AS category,
 								COALESCE(SUM(p.quantity * pr.price)) AS gained
 								FROM
 										products pr
 								JOIN
+										categories cat ON pr.category = cat.id
+								LEFT JOIN
 										purchases p ON pr.id = p.productid
 								GROUP BY
-										pr.id, pr.name, pr.category
+										pr.id, pr.name, cat.name
 								ORDER BY
 										gained ASC
 								LIMIT 10`

@@ -539,11 +539,11 @@ func FulfillOrder() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching order while fulfilling: %v", err), Errors: []string{err.Error()}})
 		}
 
-		orders, err := order.Fulfill()
+		updatedOrder, err := order.Fulfill()
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fulfilling order: %v", err), Errors: []string{err.Error()}})
 		}
-		return c.JSON(http.StatusOK, orders)
+		return c.JSON(http.StatusOK, updatedOrder)
 
 	}
 }
