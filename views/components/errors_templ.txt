@@ -1,2 +1,0 @@
-<span class=\"text-std bg-error\">
-</span>

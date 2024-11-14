@@ -47,7 +47,7 @@ func Shop(site models.Site, products []models.Product, csrf string, nonce string
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col gap-2 w-full bg-primary min-h-screen\"><h1 class=\"text-2xl md:text-5xl font-bold text-center md:text-left w-full bg-accent text-std tracking-wider italic my-2 py-2 pl-5\">Shop</h1><div id=\"sp\" class=\"grid md:grid-cols-3 gap-6 p-6 w-full\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -57,7 +57,7 @@ func Shop(site models.Site, products []models.Product, csrf string, nonce string
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

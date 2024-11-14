@@ -44,7 +44,7 @@ func Pay(site models.Site, publishableKey string, csrf string, nonce string) tem
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center\"><form id=\"stripe-form\" class=\"rounded-lg shadow-lg bg-std p-5\"><input type=\"hidden\" id=\"pk\" name=\"pk\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -57,7 +57,7 @@ func Pay(site models.Site, publishableKey string, csrf string, nonce string) tem
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"> <input type=\"hidden\" id=\"_csrf\" name=\"_csrf\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -70,7 +70,7 @@ func Pay(site models.Site, publishableKey string, csrf string, nonce string) tem
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 3)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"payment-element\"></div><div id=\"error-messages\"></div><button type=\"submit\" class=\"mt-6 w-full bg-primary text-std py-3 rounded-lg font-bold text-lg hover:bg-accent\">Pay Now</button></form></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -1,2 +1,0 @@
-<footer hx-boost=\"true\" class=\"bg-primary text-std p-3 text-center\"><div class=\"my-3 text-sm italic flex justify-center w-full gap-2 items-center\"><a href=\"/policy\">Privacy Policy</a> <a href=\"/terms\">Terms & Conditions</a></div><p class=\"text-sm\">&copy; 
- Rosskery. All rights reserved.</p></footer>

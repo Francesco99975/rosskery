@@ -1,1 +1,0 @@
-<main style=\"display: flex; width: 100%; justify-content: center; align-items: center; text-align: center; height: 100vh;\"><h1 style=\" border-radius: 0.125rem; font-size: 2.5rem; line-height: 2rem;  padding: 0.5rem; margin-top: 0.75rem; margin-bottom: 0.75rem; background-color: red; color: white; text-align: center; width: 66.666667%;\">We are Offline at the moment</h1></main>

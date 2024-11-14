@@ -48,7 +48,7 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col w-full items-center min-h-screen\"><section class=\"relative h-[500px] md:h-[600px] lg:h-[700px] w-full\"><img src=\"/assets/images/main.jpg\" alt=\"Assorted sweets\" class=\"absolute inset-0 object-cover w-full h-full\"><div class=\"absolute inset-0 bg-black/40\"></div><div class=\"relative z-10 h-full flex flex-col items-center justify-center gap-4 px-6 text-center text-std\"><h1 class=\"text-5xl md:text-7xl font-bold\">Indulge in Sweet Delights</h1><p class=\"max-w-lg\">Explore our collection of mouth-watering sweets made with love.</p><a class=\"inline-flex h-10 items-center justify-center rounded-md bg-std px-6 text-lg font-medium text-primary transition-colors hover:bg-accent hover:text-std\" hx-boost=\"true\" href=\"/shop\">Explore Collection</a><div class=\"text-center text-std flex justify-evenly p-2 md:w-[30%] w-[55%] my-1\"><a href=\"https://facebook.com\" class=\"bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -56,7 +56,7 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a href=\"https://instagram.com\" class=\"bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -64,12 +64,12 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 3)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div><a href=\"mailto:\" class=\"text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center\">email@gmail.com</a></div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(featuredProducts) > 0 {
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 4)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section class=\"flex flex-col gap-2 justify-center w-full bg-primary pt-3\"><h2 class=\"text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1\">Featured</h2><div id=\"fp\" class=\"grid md:grid-cols-3 gap-6 p-6 w-full\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -79,13 +79,13 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 5)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></section>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if len(newArrivals) > 0 {
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 6)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section class=\"flex flex-col gap-2 justify-center w-full bg-primary pt-3\"><h2 class=\"text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1\">New Arrivals</h2><div id=\"na\" class=\"grid md:grid-cols-3 gap-6 p-6 w-full\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -95,12 +95,12 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 7)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></section>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 8)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

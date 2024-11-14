@@ -1,4 +1,0 @@
-<ul class=\"m-2 max-h-32 overflow-y-auto border border-gray-300 rounded bg-white shadow-lg\">
-<li id=\"suggestion\" class=\"p-2 hover:italic hover:bold cursor-pointer\">
-</li>
-</ul>

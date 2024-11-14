@@ -44,7 +44,7 @@ func Confirmation(site models.Site, nonce string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 1)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col gap-2 w-full bg-primary min-h-screen justify-center items-center text-std\"><h1 class=\"text-xl md:text-2xl font-bold mb-4\">Thank you for your order!</h1><p class=\"text-lg\">We will be in touch with you shortly.</p><a href=\"/\" class=\"text-center underline hover:italic\">Return to Main Page</a></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
