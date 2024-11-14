@@ -15,3 +15,5 @@ build
 *.tar
 tmp
 *dev.sh
+views/**/*.txt
+views/**/*_templ.go
