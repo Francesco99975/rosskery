@@ -12,10 +12,6 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-type OperationResult struct {
-	value bool
-}
-
 type MessageUpdate struct {
 	Message string `json:"message"`
 }

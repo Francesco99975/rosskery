@@ -43,7 +43,7 @@ func CreatePurchase(tx *sqlx.Tx, orderId string, productId string, quantity int)
 
 	product, err := GetProduct(productId)
 	if err != nil {
-		return nil, fmt.Errorf("Error getting product while submitting purchase: %s", err)
+		return nil, fmt.Errorf("error getting product while submitting purchase: %s", err)
 	}
 
 	newPurchase := &Purchase{Id: uuid.NewV4().String(), Product: *product, Quantity: quantity}
@@ -52,7 +52,7 @@ func CreatePurchase(tx *sqlx.Tx, orderId string, productId string, quantity int)
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
-		return nil, fmt.Errorf("Error inserting purchase: %s", err)
+		return nil, fmt.Errorf("error inserting purchase: %s", err)
 	}
 
 	return newPurchase, nil
@@ -221,7 +221,7 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 
 	newOrder := &Order{Id: uuid.NewV4().String(), Customer: *(*customer).ConvertToCustomer(time.Time{}, 0), Pickuptime: pickuptime, Purchases: make([]Purchase, len(items)), Fulfilled: false, Method: string(method)}
 
-	if _, err := tx.Exec(statement, newOrder.Id, newOrder.Customer.Id, newOrder.Pickuptime, newOrder.Fulfilled, newOrder.Method); err != nil {
+	if _, err = tx.Exec(statement, newOrder.Id, newOrder.Customer.Id, newOrder.Pickuptime, newOrder.Fulfilled, newOrder.Method); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -237,11 +237,11 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 		newOrder.Purchases[i] = *purchase
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, fmt.Errorf("Error rolling back transaction: %v", rollbackErr)
+			return nil, fmt.Errorf("error rolling back transaction: %v", rollbackErr)
 		}
-		return nil, fmt.Errorf("Error committing transaction: %v", err)
+		return nil, fmt.Errorf("error committing transaction: %v", err)
 	}
 
 	createdOrder, err := GetOrder(newOrder.Id)

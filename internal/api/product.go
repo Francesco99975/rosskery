@@ -1,18 +1,22 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/Francesco99975/rosskery/internal/helpers"
 	"github.com/Francesco99975/rosskery/internal/models"
+	"github.com/Francesco99975/rosskery/views/components"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	uuid "github.com/satori/go.uuid"
 )
 
-func AddProduct() echo.HandlerFunc {
+func AddProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		parsedPrice, err := strconv.Atoi(c.FormValue("price"))
@@ -49,10 +53,32 @@ func AddProduct() echo.HandlerFunc {
 
 		file := uploadedFiles[0]
 
-		products, err := models.CreateProduct(payload.Name, payload.Description, payload.Price, file, payload.CategoryId, payload.Weighed, payload.Lv)
+		id := uuid.NewV4().String()
+
+		products, err := models.CreateProduct(id, payload.Name, payload.Description, payload.Price, file, payload.CategoryId, payload.Weighed, payload.Lv)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating product: %v", err), Errors: []string{err.Error()}})
 		}
+
+		newProduct, err := models.GetProduct(id)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching new product: %v", err), Errors: []string{err.Error()}})
+		}
+
+		csrfToken := c.Get("csrf").(string)
+
+		html, err := helpers.GeneratePage(components.ProductItem(*newProduct, csrfToken))
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
+		}
+
+		htmlData := models.HtmlData{Id: id, Html: string(html)}
+		rawHtmlData, err := json.Marshal(htmlData)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing html data: %v", err), Errors: []string{err.Error()}})
+		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventNewProduct, Payload: rawHtmlData})
 
 		return c.JSON(http.StatusCreated, products)
 	}
@@ -85,7 +111,7 @@ func Product() echo.HandlerFunc {
 	}
 }
 
-func UpdateProduct() echo.HandlerFunc {
+func UpdateProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
 
@@ -137,11 +163,31 @@ func UpdateProduct() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while updating product: %v", err), Errors: []string{err.Error()}})
 		}
 
+		updatedProduct, err := models.GetProduct(id)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Updated Product not found. Cause -> %v", err), Errors: []string{err.Error()}})
+		}
+
+		csrfToken := c.Get("csrf").(string)
+
+		html, err := helpers.GeneratePage(components.ProductItem(*updatedProduct, csrfToken))
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
+		}
+
+		htmlData := models.HtmlData{Id: id, Html: string(html)}
+		rawHtmlData, err := json.Marshal(htmlData)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing html data: %v", err), Errors: []string{err.Error()}})
+		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventUpdateVisitsAdmin, Payload: rawHtmlData})
+
 		return c.JSON(http.StatusOK, products)
 	}
 }
 
-func DeleteProduct() echo.HandlerFunc {
+func DeleteProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
 		product, err := models.GetProduct(id)
@@ -153,6 +199,13 @@ func DeleteProduct() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while deleting product: %v", err), Errors: []string{err.Error()}})
 		}
+
+		rawId, err := json.Marshal(struct{ Id string }{Id: id})
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing product removal: %v", err), Errors: []string{err.Error()}})
+		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventRemoveProduct, Payload: rawId})
 
 		return c.JSON(http.StatusOK, products)
 	}

@@ -1,9 +1,11 @@
 package views
 
-import "github.com/Francesco99975/rosskery/internal/models"
-import "github.com/Francesco99975/rosskery/views/layouts"
-import "github.com/Francesco99975/rosskery/views/components"
-import "github.com/Francesco99975/rosskery/views/icons"
+import (
+	"github.com/Francesco99975/rosskery/internal/models"
+	"github.com/Francesco99975/rosskery/views/components"
+	"github.com/Francesco99975/rosskery/views/icons"
+	"github.com/Francesco99975/rosskery/views/layouts"
+)
 
 templ Index(site models.Site, featuredProducts []models.Product, newArrivals []models.Product, csrf string, nonce string) {
 	@layouts.CoreHTML(site, nonce, nil, nil, nil) {
@@ -15,9 +17,9 @@ templ Index(site models.Site, featuredProducts []models.Product, newArrivals []m
 					<h1 class="text-5xl md:text-7xl font-bold">Indulge in Sweet Delights</h1>
 					<p class="max-w-lg">Explore our collection of mouth-watering sweets made with love.</p>
 					<a
- 						class="inline-flex h-10 items-center justify-center rounded-md bg-std px-6 text-lg font-medium text-primary transition-colors hover:bg-accent hover:text-std"
- 						hx-boost="true"
- 						href="/shop"
+						class="inline-flex h-10 items-center justify-center rounded-md bg-std px-6 text-lg font-medium text-primary transition-colors hover:bg-accent hover:text-std"
+						hx-boost="true"
+						href="/shop"
 					>
 						Explore Collection
 					</a>
@@ -29,14 +31,19 @@ templ Index(site models.Site, featuredProducts []models.Product, newArrivals []m
 							@icons.IG("#F1E1E4")
 						</a>
 					</div>
-					<a href="mailto:" class="text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center">email@gmail.com</a>
+					<a
+						href="mailto:"
+						class="text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center"
+					>email@gmail.com</a>
 				</div>
 			</section>
 			// Load after first draw
 			if len(featuredProducts) > 0 {
 				<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
-					<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">Featured</h2>
-					<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
+					<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">
+						Featured
+					</h2>
+					<div id="fp" class="grid md:grid-cols-3 gap-6 p-6 w-full">
 						for _, product := range featuredProducts {
 							@components.ProductItem(product, csrf)
 						}
@@ -45,8 +52,11 @@ templ Index(site models.Site, featuredProducts []models.Product, newArrivals []m
 			}
 			if len(newArrivals) > 0 {
 				<section class="flex flex-col gap-2 justify-center w-full bg-primary pt-3">
-					<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">New Arrivals</h2>
-					<div class="grid md:grid-cols-3 gap-6 p-6 w-full">
+					<h2 class="text-2xl md:text-5xl font-bold text-center w-full bg-accent text-std tracking-wider italic py-1">
+						New
+						Arrivals
+					</h2>
+					<div id="na" class="grid md:grid-cols-3 gap-6 p-6 w-full">
 						for _, product := range newArrivals {
 							@components.ProductItem(product, csrf)
 						}

@@ -1,0 +1,5 @@
+<!doctype html><html lang=\"en\">
+<body class=\"w-full flex flex-col justify-stretch items-stretch bg-std relative\"><div id=\"indicator\" class=\"htmx-indicator w-full h-screen absolute bottom-0 right-0 z-50 flex bg-slate-700 opacity-70 justify-center items-center\"><div class=\"loader\"></div></div>
+</body><script nonce=\"
+\">\n\t\t\tif (window.visited) {\n\t\t\t\tconn.send(JSON.stringify({ type: \"view\", payload: \"\" }));\n\t\t\t}\n\t\t</script>
+</html>

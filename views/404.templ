@@ -1,7 +1,9 @@
 package views
 
-import "github.com/Francesco99975/rosskery/internal/models"
-import "github.com/Francesco99975/rosskery/views/layouts"
+import (
+	"github.com/Francesco99975/rosskery/internal/models"
+	"github.com/Francesco99975/rosskery/views/layouts"
+)
 
 templ ClientError(site models.Site, err error) {
 	@layouts.CoreHTML(site, "", nil, nil, nil) {

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func CreateCategory() echo.HandlerFunc {
+func CreateCategory(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var payload models.CategoryDto
 		if err := c.Bind(&payload); err != nil {
@@ -23,6 +24,18 @@ func CreateCategory() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating category: %v", err), Errors: []string{err.Error()}})
 		}
+
+		newCategory, err := models.GetCategory(payload.Category)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching category: %v", err), Errors: []string{err.Error()}})
+		}
+
+		rawNewCategory, err := json.Marshal(newCategory)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing category: %v", err), Errors: []string{err.Error()}})
+		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventNewCategory, Payload: rawNewCategory})
 
 		return c.JSON(http.StatusCreated, categories)
 	}
@@ -39,7 +52,7 @@ func Categories() echo.HandlerFunc {
 	}
 }
 
-func DeleteCategory() echo.HandlerFunc {
+func DeleteCategory(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
 		category, err := models.GetCategory(id)
@@ -51,6 +64,13 @@ func DeleteCategory() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error deleting category: %v", err), Errors: []string{err.Error()}})
 		}
+
+		rawId, err := json.Marshal(struct{ Id string }{Id: id})
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing category: %v", err), Errors: []string{err.Error()}})
+		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventRemoveCategory, Payload: rawId})
 
 		return c.JSON(http.StatusOK, categories)
 	}

@@ -70,9 +70,9 @@ func CreateCustomer(fullname string, email string, address string, phone string)
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return nil, fmt.Errorf("Error rolling back transaction: %v", rollbackErr)
+			return nil, fmt.Errorf("error rolling back transaction: %v", rollbackErr)
 		}
-		return nil, fmt.Errorf("Error committing transaction: %v", err)
+		return nil, fmt.Errorf("error committing transaction: %v", err)
 	}
 
 	return c, nil
@@ -194,9 +194,9 @@ func (customer *DbCustomer) Update(fullname string, email string, address string
 
 	if err := tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return fmt.Errorf("Error rolling back transaction: %v", rollbackErr)
+			return fmt.Errorf("error rolling back transaction: %v", rollbackErr)
 		}
-		return fmt.Errorf("Error committing transaction: %v", err)
+		return fmt.Errorf("error committing transaction: %v", err)
 	}
 
 	return nil

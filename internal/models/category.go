@@ -60,12 +60,12 @@ func GetCategories() ([]Category, error) {
 	return categories, nil
 }
 
-func GetCategory(id string) (*Category, error) {
+func GetCategory(name string) (*Category, error) {
 	var category Category
 
-	statement := "SELECT * FROM categories WHERE id = $1"
+	statement := "SELECT * FROM categories WHERE name = $1"
 
-	err := db.Get(&category, statement, id)
+	err := db.Get(&category, statement, name)
 
 	if err != nil {
 		return nil, err

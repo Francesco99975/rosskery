@@ -102,27 +102,27 @@ type OrderDto struct {
 func (o *OrderDto) Validate() error {
 
 	if o.Pickuptime.IsZero() {
-		return fmt.Errorf("Pickuptime cannot be empty")
+		return fmt.Errorf("pickuptime cannot be empty")
 	}
 
 	if o.Method == "" {
-		return fmt.Errorf("Method cannot be empty")
+		return fmt.Errorf("method cannot be empty")
 	}
 
 	if o.Fullname == "" {
-		return fmt.Errorf("Fullname cannot be empty")
+		return fmt.Errorf("fullname cannot be empty")
 	}
 
 	if o.Email == "" {
-		return fmt.Errorf("Email cannot be empty")
+		return fmt.Errorf("email cannot be empty")
 	}
 
 	if o.Address == "" {
-		return fmt.Errorf("Address cannot be empty")
+		return fmt.Errorf("address cannot be empty")
 	}
 
 	if o.Phone == "" {
-		return fmt.Errorf("Phone cannot be empty")
+		return fmt.Errorf("phone cannot be empty")
 	}
 
 	//Validate Email
@@ -132,7 +132,7 @@ func (o *OrderDto) Validate() error {
 	re := regexp.MustCompile(emailRegexPattern)
 
 	if !re.MatchString(o.Email) {
-		return fmt.Errorf("Email is not a valid email address")
+		return fmt.Errorf("email is not a valid email address")
 	}
 
 	o.Email = strings.ToLower(o.Email)
@@ -141,7 +141,7 @@ func (o *OrderDto) Validate() error {
 	phoneRegex := regexp.MustCompile(`^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$`)
 	phoneCleaned := regexp.MustCompile(`[^\d]`).ReplaceAllString(o.Phone, "")
 	if !phoneRegex.MatchString(phoneCleaned) {
-		return fmt.Errorf("Phone is not a valid phone number")
+		return fmt.Errorf("phone is not a valid phone number")
 	}
 
 	// Format phone number
@@ -153,7 +153,7 @@ func (o *OrderDto) Validate() error {
 
 	addressRegex := regexp.MustCompile(`^\d+\s[A-Za-z]+(?:\s[A-Za-z]+)*,?\s*[A-Za-z]+(?:\s[A-Za-z]+)*,?\s*(?:[A-Za-z]+\s*)?,?\s*(\d{5}|\b[ABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Z]{1}\s?\d{1}[A-Z]{1}\d{1}\b)?(?:\s[A-Za-z]+)?$`)
 	if !addressRegex.MatchString(o.Address) {
-		return fmt.Errorf("Address is not a valid address")
+		return fmt.Errorf("address is not a valid address")
 	}
 
 	formattedAddress := strings.TrimSpace(o.Address)
@@ -178,25 +178,25 @@ func (o *OrderDto) Validate() error {
 	resp, err := http.Get(apiURL)
 	if err != nil {
 		log.Errorf("Failed to get geocode response: %v", err)
-		return fmt.Errorf("Address is not a valid address")
+		return fmt.Errorf("address is not a valid address")
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Error("Failed to read geocode response")
-		return fmt.Errorf("Address is not a valid address")
+		return fmt.Errorf("address is not a valid address")
 	}
 
 	var geocodeResponse GeocodeResponse
 	if err := json.Unmarshal(body, &geocodeResponse); err != nil {
 		log.Errorf("Failed to unmarshal geocode response: %v", err)
-		return fmt.Errorf("Address is not a valid address")
+		return fmt.Errorf("address is not a valid address")
 	}
 
 	if geocodeResponse.Status != "OK" || len(geocodeResponse.Results) == 0 {
 		log.Errorf("Failed to geocode address: %v", geocodeResponse.Status)
-		return fmt.Errorf("Address is not a valid address")
+		return fmt.Errorf("address is not a valid address")
 	}
 
 	o.Address = formattedAddress

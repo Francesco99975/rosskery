@@ -151,7 +151,7 @@ func GetHorizonalDataAndQueryByTimeframe(tableDate string, timeframe Timeframe, 
 			horizontal = append(horizontal, time.Now().AddDate(0, -i, 0).Month().String())
 		}
 	default:
-		return nil, fmt.Errorf("Invalid timeframe: %v", timeframe)
+		return nil, fmt.Errorf("invalid timeframe: %v", timeframe)
 	}
 
 	return horizontal, nil
@@ -210,7 +210,7 @@ func ComputeVertical(results []Count, horizontal []string, timeframe Timeframe) 
 			}
 		}
 	default:
-		return nil, fmt.Errorf("Invalid timeframe: %v", timeframe)
+		return nil, fmt.Errorf("invalid timeframe: %v", timeframe)
 	}
 
 	return vertical, nil

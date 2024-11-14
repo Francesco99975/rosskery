@@ -11,6 +11,11 @@ type Event struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
+type HtmlData struct {
+	Id   string `json:"id"`
+	Html string `json:"html"`
+}
+
 type EventHandler func(event Event, c *Client) error
 
 const (
@@ -19,6 +24,11 @@ const (
 	EventAuthAdmin         = "authadmin"
 	EventUpdateVisitsAdmin = "uvadmin"
 	EventSettingsChanged   = "settingschanged"
+	EventNewProduct        = "newproduct"
+	EventUpdateProduct     = "updateproduct"
+	EventRemoveProduct     = "removeproduct"
+	EventNewCategory       = "newcategory"
+	EventRemoveCategory    = "removecategory"
 )
 
 func SendVisitHandler(event Event, client *Client) error {
@@ -98,6 +108,77 @@ func SendSettingsChangeHandler(event Event, client *Client) error {
 			client.egress <- outgoingEvent
 		}
 
+	}
+	return nil
+}
+
+func SendNewProductHandler(event Event, client *Client) error {
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = EventNewProduct
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room != "admin" {
+			client.egress <- outgoingEvent
+		}
+	}
+
+	return nil
+}
+
+func SendUpdateProductHandler(event Event, client *Client) error {
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = EventUpdateProduct
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room != "admin" {
+			client.egress <- outgoingEvent
+		}
+	}
+	return nil
+}
+
+func SendRemoveProductHandler(event Event, client *Client) error {
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = EventRemoveProduct
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room != "admin" {
+			client.egress <- outgoingEvent
+		}
+	}
+	return nil
+}
+
+func SendNewCategoryHandler(event Event, client *Client) error {
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = EventNewCategory
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room != "admin" {
+			client.egress <- outgoingEvent
+		}
+	}
+	return nil
+}
+
+func SendRemoveCategoryHandler(event Event, client *Client) error {
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = EventRemoveCategory
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room != "admin" {
+			client.egress <- outgoingEvent
+		}
 	}
 	return nil
 }

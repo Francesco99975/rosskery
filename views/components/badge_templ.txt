@@ -1,0 +1,19 @@
+<div id=\"cbadge\"><div class=\"absolute top-0 right-0 flex items-center justify-center w-6 h-6 text-xs font-bold text-std bg-primary rounded-full\">
+</div><dialog
+ open
+ id=\"preview\" hx-headers=\"
+\" class=\"fixed left-0 top-0 w-full max-w-lg m-0 rounded-t-lg p-4 bg-std shadow-lg\"><div class=\"flex items-center justify-between w-full mb-6\"><h2 class=\"text-lg font-bold mb-4 text-primary\">Bag</h2><button id=\"close\" class=\"text-red-500 hover:text-red-700 w-8 h-8 font-bold\">X</button></div>
+<ul id=\"bag-items\" class=\"mb-4 space-y-2\">
+<li class=\"flex justify-between items-center text-primary\"><span>
+ (x
+) - 
+</span><div class=\"flex space-x-2\"><button class=\"text-red-500 hover:text-red-700 w-8 h-8\" hx-put=\"
+\" hx-trigger=\"click\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\">
+</button> <button class=\"text-red-500 hover:text-red-700 w-8 h-8\" hx-delete=\"
+\" hx-trigger=\"click\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\">
+</button></div></li>
+</ul><div class=\"text-right font-bold text-accent\" id=\"total-cost\">Total: 
+</div><button class=\"w-full bg-red-500 text-std py-2 rounded-lg hover:bg-red-700\" hx-delete=\"/bag\" hx-trigger=\"click\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\">Empty Bag</button> <a href=\"/checkout\" hx-boost=\"false\" class=\"w-full bg-primary text-std py-2 rounded-lg my-2 text-center block\">Proceed to Checkout</a>
+<h1 class=\"text-center text-primary\">No Items in the Bag</h1>
+</dialog>
+</div>

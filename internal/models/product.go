@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Product struct {
@@ -80,7 +79,7 @@ func ProductExists(name string) bool {
 	return err != nil
 }
 
-func CreateProduct(name string, description string, price int, file *multipart.FileHeader, categoryId string, weighed bool, lv int) ([]Product, error) {
+func CreateProduct(id string, name string, description string, price int, file *multipart.FileHeader, categoryId string, weighed bool, lv int) ([]Product, error) {
 	statement := "INSERT INTO products(id, name, description, price, image, featured, published, category, weighed, lv) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 
 	tx := db.MustBegin()
@@ -90,7 +89,7 @@ func CreateProduct(name string, description string, price int, file *multipart.F
 		return nil, err
 	}
 
-	newProduct := &Product{Id: uuid.NewV4().String(), Name: name, Description: description, Price: price, Featured: false, Published: true, Category: *category, Weighed: weighed, Lv: lv}
+	newProduct := &Product{Id: id, Name: name, Description: description, Price: price, Featured: false, Published: true, Category: *category, Weighed: weighed, Lv: lv}
 
 	imageUrl, err := helpers.ImageUpload(file, "products", newProduct.Id)
 	if err != nil {
@@ -99,14 +98,14 @@ func CreateProduct(name string, description string, price int, file *multipart.F
 
 	newProduct.Image = imageUrl
 
-	if _, err := tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, newProduct.Featured, newProduct.Published, newProduct.Category.Id, newProduct.Weighed, newProduct.Lv); err != nil {
+	if _, err = tx.Exec(statement, newProduct.Id, newProduct.Name, newProduct.Description, newProduct.Price, newProduct.Image, newProduct.Featured, newProduct.Published, newProduct.Category.Id, newProduct.Weighed, newProduct.Lv); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
@@ -334,14 +333,14 @@ func (product *Product) Update(name string, description string, price int, file 
 
 	tx := db.MustBegin()
 
-	if _, err := tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed, product.Lv, product.Id); err != nil {
+	if _, err = tx.Exec(statement, product.Name, product.Description, product.Price, product.Image, product.Featured, product.Published, product.Category.Id, product.Weighed, product.Lv, product.Id); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return nil, rollbackErr
 		}

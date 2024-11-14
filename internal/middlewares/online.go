@@ -22,7 +22,8 @@ func IsOnline(ctx context.Context) echo.MiddlewareFunc {
 			}
 
 			if !online {
-				html, err := helpers.GeneratePage(views.Offline())
+				nonce := c.Get("nonce").(string)
+				html, err := helpers.GeneratePage(views.Offline(nonce))
 
 				if err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

@@ -9,7 +9,7 @@ const (
 )
 
 type Settings struct {
-	Online    bool
-	Operative bool
-	Message   string
+	Online    bool   `json:"online"`
+	Operative bool   `json:"operative"`
+	Message   string `json:"message"`
 }

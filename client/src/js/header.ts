@@ -40,7 +40,8 @@ function initHeader() {
     const clonesNeeded = Math.ceil(divWidth / spanWidth) + 1;
 
     for (let i = 0; i < clonesNeeded; i++) {
-      const clone = span.cloneNode(true);
+      const clone = span.cloneNode(true) as HTMLElement;
+      clone.classList.add("mtc");
       if (span.parentNode) {
         span.parentNode.appendChild(clone);
       }

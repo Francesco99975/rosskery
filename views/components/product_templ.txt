@@ -1,0 +1,7 @@
+<div id=\"
+\" class=\"flex flex-col items-center gap-4 bg-std shadow-lg rounded-b-xl text-primary relative\"><img src=\"
+\" alt=\"Cookies\" width=\"200\" height=\"200\" class=\"w-full h-56 object-cover\" style=\"aspect-ratio: 200 / 200; object-fit: cover;\"><h2 class=\"text-xl font-bold absolute top-0 right-0 bg-accent text-std z-10 p-2 rounded-sm\">
+ - 
+</h2><form hx-post=\"
+\" hx-target=\"#cbadge\" hx-swap=\"outerHTML\" class=\"flex flex-col w-full\"><input type=\"hidden\" name=\"_csrf\" id=\"_csrf\" value=\"
+\"> <input id=\"openbag\" type=\"hidden\" name=\"openbag\" value=\"false\"> <button type=\"submit\" class=\"tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl\">ADD TO BAG</button></form></div>

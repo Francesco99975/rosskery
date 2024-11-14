@@ -132,6 +132,11 @@ func (m *ConnectionManager) setupEventHandlers() {
 	m.handlers[EventAuthAdmin] = SendOtpHandler
 	m.handlers[EventUpdateVisitsAdmin] = SendVisitHandler
 	m.handlers[EventSettingsChanged] = SendSettingsChangeHandler
+	m.handlers[EventNewCategory] = SendNewCategoryHandler
+	m.handlers[EventRemoveCategory] = SendRemoveCategoryHandler
+	m.handlers[EventNewProduct] = SendNewProductHandler
+	m.handlers[EventUpdateProduct] = SendUpdateProductHandler
+	m.handlers[EventRemoveProduct] = SendRemoveProductHandler
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
