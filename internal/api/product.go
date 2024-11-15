@@ -65,11 +65,11 @@ func AddProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching new product: %v", err), Errors: []string{err.Error()}})
 		}
 
-		csrfToken := c.Get("csrf").(string)
+		csrfToken := c.Request().Header.Get("X-CSRF-Token")
 
 		html, err := helpers.GeneratePage(components.ProductItem(*newProduct, csrfToken))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
+			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing html data: %v", err), Errors: []string{err.Error()}})
 		}
 
 		htmlData := models.HtmlData{Id: id, Html: string(html)}

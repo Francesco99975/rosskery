@@ -23,10 +23,10 @@ declare global {
 const SETTINGS_CHANGED_EVENT = "settingschanged";
 const VISIT_EVENT = "visit";
 const PRODUCT_ADDED_EVENT = "newproduct";
-const PRODUCT_UPDATED_EVENT = "updatedproduct";
-const PRODUCT_REMOVED_EVENT = "removedproduct";
+const PRODUCT_UPDATED_EVENT = "updateproduct";
+const PRODUCT_REMOVED_EVENT = "removeproduct";
 const CATEGORY_ADDED_EVENT = "newcategory";
-const CATEGORY_REMOVED_EVENT = "removedcategory";
+const CATEGORY_REMOVED_EVENT = "removecategory";
 
 window.htmx = htmx;
 window.customElements.define("u-counter", UCounter);

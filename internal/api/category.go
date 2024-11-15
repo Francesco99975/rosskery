@@ -25,7 +25,7 @@ func CreateCategory(cm *models.ConnectionManager) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error creating category: %v", err), Errors: []string{err.Error()}})
 		}
 
-		newCategory, err := models.GetCategory(payload.Category)
+		newCategory, err := models.GetCategoryByName(payload.Category)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching category: %v", err), Errors: []string{err.Error()}})
 		}

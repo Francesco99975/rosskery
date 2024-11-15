@@ -14,8 +14,8 @@ import (
 )
 
 func ImageUpload(file *multipart.FileHeader, topic string, identifier string) (string, error) {
-	if file.Size > 1024*1024 {
-		return "", fmt.Errorf("Image size cannot be greater than 1MB")
+	if file.Size > 1024*1024*80 {
+		return "", fmt.Errorf("Image size cannot be greater than 80MB")
 	}
 
 	src, err := file.Open()
