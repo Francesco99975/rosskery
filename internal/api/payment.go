@@ -36,7 +36,7 @@ func CreatePaymentIntent(ctx context.Context) echo.HandlerFunc {
 			return err
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}

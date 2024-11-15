@@ -15,6 +15,7 @@ templ Shop(site models.Site, products []models.Product, csrf string, nonce strin
 					@components.ProductItem(product, csrf)
 				}
 			</div>
+			<input type="hidden" id="csrf_store" value={ csrf }/>
 		</main>
 	}
 }

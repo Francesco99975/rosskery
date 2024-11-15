@@ -35,34 +35,42 @@ window.visited = false;
 
 function addProductToDOM(html: string) {
   const productShop = document.getElementById("sp");
-  const productFeutured = document.getElementById("fp");
+  // const productFeutured = document.getElementById("fp");
   const productNewArrivals = document.getElementById("na");
   const productDiv = document.createElement("div");
+  const csrfBox = document.getElementById("csrf_store");
   productDiv.innerHTML = html;
-  if (productShop) {
-    productShop.appendChild(productDiv);
+  const content = productDiv.children[0];
+  window.htmx.process(content);
+  if (productShop && csrfBox) {
+    const csrfToken = csrfBox.getAttribute("value") || "";
+    (content.lastChild?.firstChild as HTMLElement).setAttribute(
+      "value",
+      csrfToken
+    );
+    productShop.prepend(content);
   }
 
-  if (productFeutured) {
-    productFeutured.appendChild(productDiv);
-  }
+  // if (productFeutured && csrfBox) {
+  //   productNewArrivals.prepend(content);
+  // }
 
-  if (productNewArrivals) {
-    productNewArrivals.appendChild(productDiv);
+  if (productNewArrivals && csrfBox) {
+    productNewArrivals.prepend(content);
   }
 }
 
 function updateProductInDOM(productId: string, html: string) {
-  const productDiv = document.getElementById(`${productId}`);
-  if (productDiv) {
-    productDiv.innerHTML = html;
-  }
+  deleteProductFromDOM(productId);
+  addProductToDOM(html);
 }
 
 function deleteProductFromDOM(productId: string) {
-  const productDiv = document.getElementById(`${productId}`);
+  const productDiv = document.getElementById(productId);
   if (productDiv) {
     productDiv.remove();
+  } else {
+    console.log("Product to delete not found");
   }
 }
 

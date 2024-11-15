@@ -3,6 +3,7 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 
@@ -110,6 +111,22 @@ func IsAuthenticated() echo.MiddlewareFunc {
 			}
 
 			c.Set("userid", userid)
+
+			return next(c)
+		}
+	}
+}
+
+func CsrfIsRequestedFromWithinTheServer() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Check for a custom token in production
+			authToken := c.Request().Header.Get("X-Auth-Token")
+			expectedToken := os.Getenv("AUTH_CSRF_KEY")
+
+			if authToken != expectedToken {
+				return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+			}
 
 			return next(c)
 		}

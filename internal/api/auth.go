@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
@@ -111,5 +112,15 @@ func CheckToken(cm *models.ConnectionManager) echo.HandlerFunc {
 		otp := cm.GenerateNewOtp()
 
 		return c.JSON(http.StatusOK, CheckResponse{Valid: true, Otp: otp})
+	}
+}
+
+func ServeCsrfToken() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		csrfToken := c.Get("csrf").(string)
+		log.Infof("CSRF Token: %s", csrfToken)
+		return c.JSON(http.StatusOK, map[string]string{
+			"csrfToken": csrfToken,
+		})
 	}
 }

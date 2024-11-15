@@ -65,9 +65,7 @@ func AddProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error fetching new product: %v", err), Errors: []string{err.Error()}})
 		}
 
-		csrfToken := c.Request().Header.Get("X-CSRF-Token")
-
-		html, err := helpers.GeneratePage(components.ProductItem(*newProduct, csrfToken))
+		html, err := helpers.GeneratePage(components.ProductItem(*newProduct, ""))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing html data: %v", err), Errors: []string{err.Error()}})
 		}
@@ -168,9 +166,7 @@ func UpdateProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Updated Product not found. Cause -> %v", err), Errors: []string{err.Error()}})
 		}
 
-		csrfToken := c.Get("csrf").(string)
-
-		html, err := helpers.GeneratePage(components.ProductItem(*updatedProduct, csrfToken))
+		html, err := helpers.GeneratePage(components.ProductItem(*updatedProduct, ""))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")
 		}
@@ -181,7 +177,7 @@ func UpdateProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing html data: %v", err), Errors: []string{err.Error()}})
 		}
 
-		cm.BroadcastEvent(models.Event{Type: models.EventUpdateVisitsAdmin, Payload: rawHtmlData})
+		cm.BroadcastEvent(models.Event{Type: models.EventUpdateProduct, Payload: rawHtmlData})
 
 		return c.JSON(http.StatusOK, products)
 	}
@@ -200,7 +196,9 @@ func DeleteProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while deleting product: %v", err), Errors: []string{err.Error()}})
 		}
 
-		rawId, err := json.Marshal(struct{ Id string }{Id: id})
+		rawId, err := json.Marshal(struct {
+			Id string `json:"id"`
+		}{Id: id})
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error parsing product removal: %v", err), Errors: []string{err.Error()}})
 		}

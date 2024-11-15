@@ -22,7 +22,7 @@ type CartPreview struct {
 	Total int `json:"subtotal"`
 }
 
-func (c *Cart) Preview() (CartPreview, error) {
+func (c *Cart) Preview(ctx context.Context) (CartPreview, error) {
 	preview := CartPreview{
 		Items: make([]struct {
 			Product  *Product `json:"product"`
@@ -35,6 +35,7 @@ func (c *Cart) Preview() (CartPreview, error) {
 	for productId, quantity := range c.Items {
 		product, err := GetProduct(productId)
 		if err != nil {
+			c.Clear(ctx)
 			return CartPreview{}, err
 		}
 		preview.Items = append(preview.Items, struct {

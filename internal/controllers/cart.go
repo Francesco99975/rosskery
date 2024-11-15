@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -42,8 +43,9 @@ func GetCartItems(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart")
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
+			log.Errorf("Could Not get cart preview <- %w", err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
 
@@ -95,7 +97,7 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could add to cart")
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
@@ -149,7 +151,7 @@ func RemoveOneFromCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could remove from cart")
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
@@ -203,7 +205,7 @@ func RemoveItemFromCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could delete product from cart")
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
@@ -256,7 +258,7 @@ func ClearCart(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could clear cart")
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}

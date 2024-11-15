@@ -44,7 +44,7 @@ func Checkout(ctx context.Context) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart")
 		}
 
-		preview, err := cart.Preview()
+		preview, err := cart.Preview(ctx)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not get cart preview")
 		}
