@@ -81,12 +81,12 @@ func createRouter(ctx context.Context) *echo.Echo {
 	web.DELETE("/bag/:id", controllers.RemoveItemFromCart(ctx), middlewares.IsOnline(ctx))
 	web.DELETE("/bag", controllers.ClearCart(ctx), middlewares.IsOnline(ctx))
 	web.POST("/intent", api.CreatePaymentIntent(ctx), middlewares.IsOnline(ctx))
-	web.POST("/orders", api.IssueOrder(ctx), middlewares.IsOnline(ctx))
+	web.POST("/orders", api.IssueOrder(ctx, wsManager), middlewares.IsOnline(ctx))
 	web.GET("/orders/success", controllers.Success(ctx), middlewares.IsOnline(ctx))
 
 	web.GET("/address", controllers.AddressAutocomplete())
 
-	web.POST("/webhook", api.PaymentWebhook(ctx))
+	web.POST("/webhook", api.PaymentWebhook(ctx, wsManager))
 
 	web.GET("/csrf", api.ServeCsrfToken(), middlewares.CsrfIsRequestedFromWithinTheServer())
 
@@ -105,9 +105,9 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin.GET("/clientele", api.GetCustomerStats())
 	admin.GET("/customers", api.Customers())
 	admin.GET("/customers/:id", api.Customer())
-	admin.DELETE("/customers/:id", api.DeleteCustomer())
+	admin.DELETE("/customers/:id", api.DeleteCustomer(wsManager))
 	admin.GET("/finances", api.GetFinances())
-	admin.GET("/finances/stats", api.GetFinancesStats())
+	admin.GET("/finances/stats", api.GetFinancesStats(wsManager))
 	admin.GET("/finances/orders", api.GetOrdersData())
 	admin.GET("/finances/monetary", api.GetMonetaryData())
 	admin.GET("/finances/payments", api.GetPaymentData())

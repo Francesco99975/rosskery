@@ -42,20 +42,32 @@ function addProductToDOM(html: string) {
   productDiv.innerHTML = html;
   const content = productDiv.children[0];
   window.htmx.process(content);
+
   if (productShop && csrfBox) {
     const csrfToken = csrfBox.getAttribute("value") || "";
     (content.lastChild?.firstChild as HTMLElement).setAttribute(
       "value",
       csrfToken
     );
+
     productShop.prepend(content);
   }
 
   // if (productFeutured && csrfBox) {
-  //   productNewArrivals.prepend(content);
+  // const csrfToken = csrfBox.getAttribute("value") || "";
+  // (content.lastChild?.firstChild as HTMLElement).setAttribute(
+  //   "value",
+  //   csrfToken
+  // );
+  //   productFeutured.prepend(content);
   // }
 
   if (productNewArrivals && csrfBox) {
+    const csrfToken = csrfBox.getAttribute("value") || "";
+    (content.lastChild?.firstChild as HTMLElement).setAttribute(
+      "value",
+      csrfToken
+    );
     productNewArrivals.prepend(content);
   }
 }

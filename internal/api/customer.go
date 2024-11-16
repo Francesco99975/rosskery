@@ -61,7 +61,7 @@ func Customer() echo.HandlerFunc {
 	}
 }
 
-func DeleteCustomer() echo.HandlerFunc {
+func DeleteCustomer(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
 		customer, err := models.GetCustomer(id)
@@ -73,6 +73,8 @@ func DeleteCustomer() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error deleting customer: %v", err), Errors: []string{err.Error()}})
 		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventCustomersChanged, Payload: nil})
 
 		return c.JSON(http.StatusOK, customers)
 	}

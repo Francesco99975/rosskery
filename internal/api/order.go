@@ -164,7 +164,7 @@ func GetFinances() echo.HandlerFunc {
 	}
 }
 
-func GetFinancesStats() echo.HandlerFunc {
+func GetFinancesStats(cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		numberOfOrders, err := models.GetOrdersAmount()
 		if err != nil {
@@ -190,6 +190,8 @@ func GetFinancesStats() echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching total from orders: %v", err), Errors: []string{err.Error()}})
 		}
+
+		cm.BroadcastEvent(models.Event{Type: models.EventOrdersChanged, Payload: nil})
 
 		return c.JSON(http.StatusOK, models.FinancesStats{OrdersAmount: numberOfOrders, OutstandingCash: outstanding, PendingMoney: pending, Gains: gains, Total: total})
 	}
@@ -277,12 +279,12 @@ func (o *OrderManager) Cache(id string, payload models.OrderDto) {
 	o.realtedCreationDate[id] = time.Now()
 }
 
-func (o *OrderManager) Confirm(ctx context.Context, id string) error {
+func (o *OrderManager) Confirm(ctx context.Context, id string, cm *models.ConnectionManager) error {
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
 	payload := o.cachedOrders[id]
-	if err := processOrder(ctx, payload, id); err != nil {
+	if err := processOrder(ctx, payload, id, cm); err != nil {
 		return err
 	}
 
@@ -305,7 +307,7 @@ func (o *OrderManager) AutoClean() error {
 	return nil
 }
 
-func processOrder(ctx context.Context, payload models.OrderDto, sessionID string) error {
+func processOrder(ctx context.Context, payload models.OrderDto, sessionID string, cm *models.ConnectionManager) error {
 	var err error
 
 	var customer *models.DbCustomer
@@ -374,10 +376,13 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 		return fmt.Errorf("Error sending receipt: %v", err)
 	}
 
+	cm.BroadcastEvent(models.Event{Type: models.EventOrdersChanged, Payload: nil})
+	cm.BroadcastEvent(models.Event{Type: models.EventCustomersChanged, Payload: nil})
+
 	return nil
 }
 
-func PaymentWebhook(ctx context.Context) echo.HandlerFunc {
+func PaymentWebhook(ctx context.Context, cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		const MaxBodyBytes = int64(65536)
 		body := http.MaxBytesReader(c.Response().Writer, c.Request().Body, MaxBodyBytes)
@@ -412,7 +417,7 @@ func PaymentWebhook(ctx context.Context) echo.HandlerFunc {
 			}
 
 			sessionID := paymentIntent.Metadata["sessionID"]
-			if err := om.Confirm(ctx, sessionID); err != nil {
+			if err := om.Confirm(ctx, sessionID, cm); err != nil {
 				log.Errorf("Error confirming order: %v", err)
 				return echo.NewHTTPError(http.StatusBadRequest, "Error confirming order")
 			}
@@ -434,7 +439,7 @@ func PaymentWebhook(ctx context.Context) echo.HandlerFunc {
 	}
 }
 
-func IssueOrder(ctx context.Context) echo.HandlerFunc {
+func IssueOrder(ctx context.Context, cm *models.ConnectionManager) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var err error
 
@@ -492,7 +497,7 @@ func IssueOrder(ctx context.Context) echo.HandlerFunc {
 		}
 
 		if payload.Method == models.CASH {
-			if err := processOrder(ctx, payload, sessionID); err != nil {
+			if err := processOrder(ctx, payload, sessionID, cm); err != nil {
 				log.Errorf("Error processing order: %v", err)
 				html, err := helpers.GeneratePage(components.Errors("Error processing order"))
 				if err != nil {

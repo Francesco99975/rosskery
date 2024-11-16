@@ -802,7 +802,7 @@ func GetFlopGainers() ([]RankedGainer, error) {
 								pr.id AS id,
 								pr.name AS name,
 								cat.name AS category,
-								COALESCE(SUM(p.quantity * pr.price)) AS gained
+								COALESCE(SUM(p.quantity * pr.price), 0) AS gained
 								FROM
 										products pr
 								JOIN

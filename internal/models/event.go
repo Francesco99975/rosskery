@@ -29,7 +29,25 @@ const (
 	EventRemoveProduct     = "removeproduct"
 	EventNewCategory       = "newcategory"
 	EventRemoveCategory    = "removecategory"
+	EventOrdersChanged     = "orderschanged"
+	EventCustomersChanged  = "customerschanged"
 )
+
+func SendAdminUpdateHandler(event Event, client *Client) error {
+
+	var outgoingEvent Event
+	outgoingEvent.Payload = event.Payload
+	outgoingEvent.Type = event.Type
+
+	for client := range client.manager.clients {
+		// Only send to clients inside the same chatroom
+		if client.room == "admin" {
+			client.egress <- outgoingEvent
+		}
+
+	}
+	return nil
+}
 
 func SendVisitHandler(event Event, client *Client) error {
 	var source string
