@@ -164,7 +164,7 @@ func GetFinances() echo.HandlerFunc {
 	}
 }
 
-func GetFinancesStats(cm *models.ConnectionManager) echo.HandlerFunc {
+func GetFinancesStats() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		numberOfOrders, err := models.GetOrdersAmount()
 		if err != nil {
@@ -190,8 +190,6 @@ func GetFinancesStats(cm *models.ConnectionManager) echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching total from orders: %v", err), Errors: []string{err.Error()}})
 		}
-
-		cm.BroadcastEvent(models.Event{Type: models.EventOrdersChanged, Payload: nil})
 
 		return c.JSON(http.StatusOK, models.FinancesStats{OrdersAmount: numberOfOrders, OutstandingCash: outstanding, PendingMoney: pending, Gains: gains, Total: total})
 	}
