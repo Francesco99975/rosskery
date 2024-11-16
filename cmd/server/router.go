@@ -88,8 +88,6 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	web.POST("/webhook", api.PaymentWebhook(ctx, wsManager))
 
-	web.GET("/csrf", api.ServeCsrfToken(), middlewares.CsrfIsRequestedFromWithinTheServer())
-
 	admin := e.Group("/admin")
 	admin.POST("/login", api.Login(wsManager))
 	admin.POST("/check", api.CheckToken(wsManager))
