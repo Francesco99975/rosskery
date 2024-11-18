@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"sync"
@@ -14,7 +15,7 @@ import (
 
 // NotificationPayload represents the data sent to Gotify
 type Notification struct {
-	ID       string `json:"id"`
+	ID       uint   `json:"id"`
 	Title    string `json:"title"`
 	Message  string `json:"message"`
 	Priority int    `json:"priority"`
@@ -56,7 +57,7 @@ func (q *NotificationQueue) getUnsentNotifications() []Notification {
 }
 
 // Mark a notification as sent
-func (q *NotificationQueue) markAsSent(id string) {
+func (q *NotificationQueue) markAsSent(id uint) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	for i, n := range q.notifications {
@@ -92,8 +93,10 @@ func sendNotificationToDevices(notification Notification) error {
 	}
 	defer resp.Body.Close()
 
+	// Log response for debugging
+	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send notification: %s", resp.Status)
+		return fmt.Errorf("failed to send notification: %s, Response: %s", resp.Status, body)
 	}
 
 	log.Infof("Notification sent to all devices!")
@@ -110,13 +113,14 @@ func (q *NotificationQueue) ProcessQueue() {
 				err := sendNotificationToDevices(n)
 				if err != nil {
 					// Wait a few seconds before retrying
+					log.Errorf("Failed to send notification: %v", err)
 					time.Sleep(5 * time.Second)
 				} else {
 					q.markAsSent(n.ID)
 				}
 			}
 		} else {
-			log.Infof("No unsent notifications in the queue.")
+			log.Debug("No unsent notifications in the queue.")
 		}
 
 		// Sleep for a short time before checking again

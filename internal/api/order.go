@@ -19,7 +19,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	uuid "github.com/satori/go.uuid"
 	"github.com/stripe/stripe-go/v78"
 	"github.com/stripe/stripe-go/v78/webhook"
 )
@@ -375,7 +374,7 @@ func processOrder(ctx context.Context, payload models.OrderDto, sessionID string
 		return fmt.Errorf("Error sending receipt: %v", err)
 	}
 
-	tools.GotifyQueue.AddNotification(tools.Notification{ID: uuid.NewV4().String(), Title: "New Order", Message: fmt.Sprintf("New order #%s", order.Id), Priority: 5, Sent: false})
+	tools.GotifyQueue.AddNotification(tools.Notification{Title: "New Order Arrived!", Message: fmt.Sprintf("New order from: %s", order.Customer.Fullname), Priority: 5, Sent: false})
 	cm.BroadcastEvent(models.Event{Type: models.EventOrdersChanged, Payload: nil})
 	cm.BroadcastEvent(models.Event{Type: models.EventCustomersChanged, Payload: nil})
 
