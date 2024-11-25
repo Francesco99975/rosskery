@@ -11,7 +11,7 @@ import (
 func GetNotifConfig() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		notifServerUrl := os.Getenv("GOTIFY_SERVER")
-		notifToken := os.Getenv("GOTIFY_TOKEN")
+		notifToken := os.Getenv("GOTIFY_CLIENT_TOKEN")
 
 		//replace https:// with wss://
 		notifServerUrl = strings.Replace(notifServerUrl, "https://", "wss://", 1)

@@ -49,7 +49,7 @@ func checkOrigin(r *http.Request) bool {
 	case os.Getenv("HOST"):
 		return true
 	default:
-		log.Info(fmt.Sprintf("Origin %s not allowed", origin))
+		log.Error(fmt.Sprintf("Origin %s not allowed", origin))
 		return false
 	}
 }

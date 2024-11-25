@@ -91,9 +91,11 @@ func createRouter(ctx context.Context) *echo.Echo {
 	admin := e.Group("/admin")
 	admin.POST("/login", api.Login(wsManager))
 	admin.POST("/check", api.CheckToken(wsManager))
+	// admin.GET("/notif", api.GetNotifConfig())
+
 	admin.Use(middlewares.IsAuthenticatedAdmin())
+
 	admin.POST("/signup", api.Signup())
-	admin.GET("/notif", api.GetNotifConfig())
 	admin.GET("/visits", api.GetVisits())
 	admin.GET("/visits/stats", api.GetVisitStats())
 	admin.GET("/visits/graph", api.GetVisitGraph())
