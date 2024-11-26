@@ -31,7 +31,7 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	e.Use(middlewares.RateLimiter)
 
-	e.Use(middlewares.BrotliMiddleware)
+	// e.Use(middlewares.BrotliMiddleware)
 
 	e.Use(middleware.Gzip())
 
