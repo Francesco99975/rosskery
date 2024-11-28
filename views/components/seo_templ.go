@@ -38,7 +38,7 @@ func SEO(site models.Site, nonce string, stylesheets []string, scripts []string)
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(site.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 8, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 8, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -51,7 +51,7 @@ func SEO(site models.Site, nonce string, stylesheets []string, scripts []string)
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(site.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 8, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 8, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -64,7 +64,7 @@ func SEO(site models.Site, nonce string, stylesheets []string, scripts []string)
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(site.Metatags.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 13, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 13, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -77,26 +77,26 @@ func SEO(site models.Site, nonce string, stylesheets []string, scripts []string)
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(site.Metatags.Keywords)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 14, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 14, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><meta name=\"author\" content=\"Francecsco Michele Barranca\"><meta name=\"robots\" content=\"index, follow\"><link rel=\"canonical\" href=\"https://example.urx.ink\"><script type=\"application/ld+json\" nonce=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><meta name=\"author\" content=\"Kalairendev\"><meta name=\"robots\" content=\"index, follow\"><link rel=\"canonical\" href=\"https://rosskery.dmz.urx.ink\"><script type=\"application/ld+json\" nonce=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(nonce)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 18, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/seo.templ`, Line: 18, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">\n                {\n                    \"@context\": \"http://schema.org\",\n                    \"@type\": \"Organization\",\n                    \"name\": \"URX\",\n                    \"url\": \"https://example.urx.ink\",\n                    \"logo\": \"https://example.urx.ink/assets/images/logo.webp\",\n                    \"contactPoint\": [\n                        {\n                            \"@type\": \"ContactPoint\",\n                            \"telephone\": \"+1\",\n                            \"contactType\": \"Kal\"\n                        }\n                    ]\n                }\n                </script>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">\n                {\n                    \"@context\": \"http://schema.org\",\n                    \"@type\": \"Organization\",\n                    \"name\": \"Rosskery\",\n                    \"url\": \"https://rosskery.dmz.urx.ink\",\n                    \"logo\": \"https://rosskery.dmz.urx.ink/assets/images/logo.webp\",\n                    \"contactPoint\": [\n                        {\n                            \"@type\": \"ContactPoint\",\n                            \"telephone\": \"+1\",\n                            \"contactType\": \"Kal\"\n                        }\n                    ]\n                }\n                </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

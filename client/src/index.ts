@@ -29,8 +29,11 @@ const CATEGORY_ADDED_EVENT = "newcategory";
 const CATEGORY_REMOVED_EVENT = "removecategory";
 
 window.htmx = htmx;
+htmx.config.includeIndicatorStyles = false;
 window.customElements.define("u-counter", UCounter);
-window.conn = new WebSocket("ws://" + document.location.host + "/ws");
+const host = document.location.host;
+const wsProtocol = document.location.protocol === "https:" ? "wss://" : "ws://";
+window.conn = new WebSocket(wsProtocol + host + "/ws");
 window.visited = false;
 
 function addProductToDOM(html: string) {
@@ -155,10 +158,64 @@ function sendVisit() {
   };
 }
 
-if (document.readyState !== "loading") {
-  sendVisit();
+function initMain() {
+  document
+    .querySelectorAll(".product-container")
+    .forEach((productContainer) => {
+      if (!(productContainer as any)._hasListener) {
+        productContainer.addEventListener("click", (event: Event) => {
+          const target = event.target as HTMLElement;
+
+          // Check if the clicked element is a button with data attributes
+          if (target.matches("[data-action]")) {
+            const action = target.getAttribute("data-action"); // 'increment' or 'decrement'
+            const type = target.getAttribute("data-type"); // 'weight' or 'quantity'
+            const productId = target.getAttribute("data-product-id"); // Product ID
+
+            if (!action || !type || !productId) return;
+
+            // Determine the input element based on the product ID and type
+            const inputId =
+              type === "weight"
+                ? `weightInput-${productId}`
+                : `quantityInput-${productId}`;
+            const input = document.getElementById(inputId) as HTMLInputElement;
+
+            if (!input) return;
+
+            // Parse the current value and adjust it
+            let currentValue = parseFloat(input.value);
+            const step = type === "weight" ? 0.1 : 1; // Step size based on type
+            currentValue += action === "increment" ? step : -step;
+
+            // Enforce minimum limits
+            if (type === "weight") {
+              currentValue = Math.max(0.1, currentValue); // Min weight is 0.1
+            } else {
+              currentValue = Math.max(1, currentValue); // Min quantity is 1
+            }
+
+            // Update the input value
+            input.value = currentValue.toFixed(type === "weight" ? 1 : 0);
+          }
+        });
+        // Mark the parent container as having a listener
+        (productContainer as any)._hasListener = true;
+      }
+    });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState !== "loading") {
   sendVisit();
+  initMain();
+} else {
+  document.addEventListener("DOMContentLoaded", function () {
+    sendVisit();
+    initMain();
+  });
+}
+
+// HTMX dynamic content handling
+document.addEventListener("htmx:afterSwap", (event) => {
+  initMain();
 });

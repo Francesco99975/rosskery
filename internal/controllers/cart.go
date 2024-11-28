@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
 	"github.com/Francesco99975/rosskery/internal/models"
@@ -64,10 +66,27 @@ func GetCartItems(ctx context.Context) echo.HandlerFunc {
 func AddToCart(ctx context.Context) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		productId := c.Param("id")
-		// qty, err := strconv.Atoi(c.FormValue(fmt.Sprintf("qty%s", productId)))
-		// if err != nil {
-		// 	return echo.NewHTTPError(http.StatusBadRequest, "Could not get quantity")
-		// }
+
+		var quantity int
+
+		qty, err := strconv.Atoi(c.FormValue(fmt.Sprintf("quantityInput-%s", productId)))
+		if err != nil {
+			weightStr := c.FormValue(fmt.Sprintf("weightInput-%s", productId))
+			weight, err := strconv.ParseFloat(weightStr, 64)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, "Could not get weight")
+			}
+
+			quantity = int(weight * 10)
+		}
+
+		if !(quantity > 0) {
+			quantity = qty
+		}
+
+		if !(quantity > 0) {
+			return echo.NewHTTPError(http.StatusBadRequest, "Quantity must be greater than 0")
+		}
 
 		sess, err := session.Get("session", c)
 
@@ -93,7 +112,7 @@ func AddToCart(ctx context.Context) echo.HandlerFunc {
 			return err
 		}
 
-		if err := cart.AddItem(ctx, productId, 1); err != nil {
+		if err := cart.AddItem(ctx, productId, quantity); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could add to cart")
 		}
 

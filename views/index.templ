@@ -5,6 +5,7 @@ import (
 	"github.com/Francesco99975/rosskery/views/components"
 	"github.com/Francesco99975/rosskery/views/icons"
 	"github.com/Francesco99975/rosskery/views/layouts"
+	"strings"
 )
 
 templ Index(site models.Site, featuredProducts []models.Product, newArrivals []models.Product, csrf string, nonce string) {
@@ -24,17 +25,17 @@ templ Index(site models.Site, featuredProducts []models.Product, newArrivals []m
 						Explore Collection
 					</a>
 					<div class="text-center text-std flex justify-evenly p-2 md:w-[30%] w-[55%] my-1">
-						<a href="https://facebook.com" class="bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1">
+						<a href={ templ.SafeURL(site.ContactFB) } class="bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1">
 							@icons.FB("#F1E1E4")
 						</a>
-						<a href="https://instagram.com" class="bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1">
+						<a href={ templ.SafeURL(site.ContactIG) } class="bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1">
 							@icons.IG("#F1E1E4")
 						</a>
 					</div>
 					<a
-						href="mailto:"
+						href={ templ.SafeURL(strings.Join([]string{"mailto:", site.ContactEmail}, "")) }
 						class="text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center"
-					>email@gmail.com</a>
+					>{ site.ContactEmail }</a>
 				</div>
 			</section>
 			// Load after first draw

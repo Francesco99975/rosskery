@@ -17,7 +17,12 @@ func SecurityHeaders() echo.MiddlewareFunc {
 			c.Set("nonce", nonce)
 
 			// Set security headers
-			c.Response().Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'nonce-"+nonce+"' 'strict-dynamic' https://js.stripe.com; connect-src 'self' https://api.stripe.com; style-src 'self'; frame-src https://js.stripe.com")
+			c.Response().Header().Set("Content-Security-Policy",
+				"default-src 'self'; "+
+					"script-src 'self' 'nonce-"+nonce+"' 'strict-dynamic' https://js.stripe.com; "+
+					"connect-src 'self' https://api.stripe.com wss://rosskery.dmz.urx.ink; "+ // For secure WebSockets
+					"style-src 'self'; "+
+					"frame-src https://js.stripe.com")
 			c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 			c.Response().Header().Set("X-Frame-Options", "DENY")
 			c.Response().Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")

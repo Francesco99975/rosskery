@@ -22,6 +22,14 @@ type Product struct {
 	Updated     time.Time `json:"updated"`
 }
 
+func (p *Product) GetPostfix() string {
+	if p.Weighed {
+		return "lb"
+	} else {
+		return "ea"
+	}
+}
+
 type DbProduct struct {
 	Id           string    `json:"id"`
 	Name         string    `json:"name"`

@@ -13,6 +13,7 @@ import (
 	"github.com/Francesco99975/rosskery/views/components"
 	"github.com/Francesco99975/rosskery/views/icons"
 	"github.com/Francesco99975/rosskery/views/layouts"
+	"strings"
 )
 
 func Index(site models.Site, featuredProducts []models.Product, newArrivals []models.Product, csrf string, nonce string) templ.Component {
@@ -48,7 +49,16 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col w-full items-center min-h-screen\"><section class=\"relative h-[500px] md:h-[600px] lg:h-[700px] w-full\"><img src=\"/assets/images/main.jpg\" alt=\"Assorted sweets\" class=\"absolute inset-0 object-cover w-full h-full\"><div class=\"absolute inset-0 bg-black/40\"></div><div class=\"relative z-10 h-full flex flex-col items-center justify-center gap-4 px-6 text-center text-std\"><h1 class=\"text-5xl md:text-7xl font-bold\">Indulge in Sweet Delights</h1><p class=\"max-w-lg\">Explore our collection of mouth-watering sweets made with love.</p><a class=\"inline-flex h-10 items-center justify-center rounded-md bg-std px-6 text-lg font-medium text-primary transition-colors hover:bg-accent hover:text-std\" hx-boost=\"true\" href=\"/shop\">Explore Collection</a><div class=\"text-center text-std flex justify-evenly p-2 md:w-[30%] w-[55%] my-1\"><a href=\"https://facebook.com\" class=\"bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"flex flex-col w-full items-center min-h-screen\"><section class=\"relative h-[500px] md:h-[600px] lg:h-[700px] w-full\"><img src=\"/assets/images/main.jpg\" alt=\"Assorted sweets\" class=\"absolute inset-0 object-cover w-full h-full\"><div class=\"absolute inset-0 bg-black/40\"></div><div class=\"relative z-10 h-full flex flex-col items-center justify-center gap-4 px-6 text-center text-std\"><h1 class=\"text-5xl md:text-7xl font-bold\">Indulge in Sweet Delights</h1><p class=\"max-w-lg\">Explore our collection of mouth-watering sweets made with love.</p><a class=\"inline-flex h-10 items-center justify-center rounded-md bg-std px-6 text-lg font-medium text-primary transition-colors hover:bg-accent hover:text-std\" hx-boost=\"true\" href=\"/shop\">Explore Collection</a><div class=\"text-center text-std flex justify-evenly p-2 md:w-[30%] w-[55%] my-1\"><a href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var3 templ.SafeURL = templ.SafeURL(site.ContactFB)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -56,7 +66,16 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a href=\"https://instagram.com\" class=\"bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> <a href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 templ.SafeURL = templ.SafeURL(site.ContactIG)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var4)))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"bg-primary bg-opacity-60 rounded shadow-md w-20 h-20 p-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -64,7 +83,29 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div><a href=\"mailto:\" class=\"text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center\">email@gmail.com</a></div></section>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div><a href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 templ.SafeURL = templ.SafeURL(strings.Join([]string{"mailto:", site.ContactEmail}, ""))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var5)))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"text-2xl italic tracking-wide bg-primary bg-opacity-60 rounded-lg shadow-lg px-5 text-center\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(site.ContactEmail)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 38, Col: 25}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -104,12 +145,12 @@ func Index(site models.Site, featuredProducts []models.Product, newArrivals []mo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(csrf)
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(csrf)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 66, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `index.templ`, Line: 67, Col: 52}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

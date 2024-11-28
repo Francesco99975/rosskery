@@ -38,13 +38,25 @@ func (c *Cart) Preview(ctx context.Context) (CartPreview, error) {
 			c.Clear(ctx)
 			return CartPreview{}, err
 		}
+
+		var subtotal int
+		var displayedQuantity int
+
+		if product.Weighed {
+			displayedQuantity = quantity
+			subtotal = product.Price * quantity / 10
+		} else {
+			displayedQuantity = quantity
+			subtotal = product.Price * quantity
+		}
+
 		preview.Items = append(preview.Items, struct {
 			Product  *Product `json:"product"`
 			Quantity int      `json:"quantity"`
 			Subtotal int      `json:"subtotal"`
-		}{product, quantity, product.Price * quantity})
+		}{product, displayedQuantity, subtotal})
 
-		preview.Total += product.Price * quantity
+		preview.Total += subtotal
 	}
 
 	return preview, nil

@@ -1,5 +1,8 @@
 function recover() {
-  window.conn = new WebSocket("ws://" + document.location.host + "/ws");
+  const host = document.location.host;
+  const wsProtocol =
+    document.location.protocol === "https:" ? "wss://" : "ws://";
+  window.conn = new WebSocket(wsProtocol + host + "/ws");
   window.conn.onopen = function (evt) {
     window.conn.onmessage = function (evt) {
       var data = JSON.parse(evt.data);

@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/Francesco99975/rosskery/internal/storage"
@@ -12,11 +13,15 @@ type SEO struct {
 	Keywords    string
 }
 type Site struct {
-	AppName  string
-	Title    string
-	Metatags SEO
-	Year     int
-	Message  string
+	AppName      string
+	Title        string
+	Metatags     SEO
+	Year         int
+	Message      string
+	ContactEmail string
+	ContactPhone string
+	ContactIG    string
+	ContactFB    string
 }
 
 func GetDefaultSite(title string, ctx context.Context) Site {
@@ -31,10 +36,14 @@ func GetDefaultSite(title string, ctx context.Context) Site {
 	}
 
 	return Site{
-		AppName:  "Rosskery",
-		Title:    title,
-		Metatags: SEO{Description: "Sweets store", Keywords: "shop,pastries,sweets,cookies,biscuits,buy,store,purchase"},
-		Year:     time.Now().Year(),
-		Message:  val,
+		AppName:      "Rosskery",
+		Title:        title,
+		Metatags:     SEO{Description: "Sweets store", Keywords: "shop,pastries,sweets,cookies,biscuits,buy,store,purchase"},
+		Year:         time.Now().Year(),
+		Message:      val,
+		ContactEmail: os.Getenv("CONTACT_EMAIL"),
+		ContactPhone: os.Getenv("CONTACT_PHONE"),
+		ContactIG:    os.Getenv("CONTACT_IG"),
+		ContactFB:    os.Getenv("CONTACT_FB"),
 	}
 }

@@ -4,10 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -34,24 +31,26 @@ var (
 
 func checkOrigin(r *http.Request) bool {
 
-	// Grab the request origin
-	origin := r.Header.Get("Origin")
+	return true
 
-	if len(origin) < 1 {
-		ua := r.Header.Get("User-Agent")
-		if strings.Contains(ua, "Dart") {
-			return true
-		}
-	}
+	// // Grab the request origin
+	// origin := r.Header.Get("Origin")
 
-	switch origin {
-	// Update this to HTTPS
-	case os.Getenv("HOST"):
-		return true
-	default:
-		log.Error(fmt.Sprintf("Origin %s not allowed", origin))
-		return false
-	}
+	// if len(origin) < 1 {
+	// 	ua := r.Header.Get("User-Agent")
+	// 	if strings.Contains(ua, "Dart") {
+	// 		return true
+	// 	}
+	// }
+
+	// switch origin {
+	// // Update this to HTTPS
+	// case os.Getenv("HOST"):
+	// 	return true
+	// default:
+	// 	log.Error(fmt.Sprintf("Origin %s not allowed", origin))
+	// 	return false
+	// }
 }
 
 var upgrader = websocket.Upgrader{CheckOrigin: checkOrigin, ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}

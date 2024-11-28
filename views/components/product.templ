@@ -7,20 +7,93 @@ import (
 )
 
 templ ProductItem(product models.Product, csrf string) {
-	<div id={ product.Id } class="flex flex-col items-center gap-4 bg-std shadow-lg rounded-b-xl text-primary relative">
+	<div id={ product.Id } class="product-container flex flex-col items-center gap-4 bg-std shadow-lg rounded-xl text-primary relative overflow-hidden w-full max-w-sm mx-auto">
+		<!-- Image Section -->
 		<img
 			src={ product.Image }
-			alt="Cookies"
-			width="200"
-			height="200"
-			class="w-full h-56 object-cover"
-			style="aspect-ratio: 200 / 200; object-fit: cover;"
+			alt={ product.Name }
+			class="w-full aspect-square object-cover rounded-t-xl"
 		/>
-		<h2 class="text-xl font-bold absolute top-0 right-0 bg-accent text-std z-10 p-2 rounded-sm">{ helpers.Capitalize(product.Name) } - { helpers.FormatPrice((float64(product.Price) / 100.0)) }</h2>
-		<form hx-post={ fmt.Sprintf("/bag/%s", product.Id) } hx-target="#cbadge" hx-swap="outerHTML" class="flex flex-col w-full">
-			<input type="hidden" name="_csrf" id="_csrf" value={ csrf }/>
-			<input id="openbag" type="hidden" name="openbag" value="false"/>
-			<button type="submit" class="tracking-wider bg-accent text-std w-full font-bold text-center p-2 mt-2 rounded-b-xl">ADD TO BAG</button>
-		</form>
+		<!-- Product Info Section -->
+		<div class="p-4 w-full">
+			<h2 class="text-lg font-bold bg-accent text-std p-2 rounded-md mb-4 text-center">
+				{ helpers.Capitalize(product.Name) } - { helpers.FormatPrice(float64(product.Price) / 100.0) }/{ product.GetPostfix() }
+			</h2>
+			<!-- Form Section -->
+			<form
+				hx-post={ fmt.Sprintf("/bag/%s", product.Id) }
+				hx-target="#cbadge"
+				hx-swap="outerHTML"
+				class="flex flex-col gap-4 w-full"
+			>
+				<input type="hidden" name="_csrf" value={ csrf }/>
+				<input type="hidden" id="openbag" name="openbag" value="false"/>
+				<!-- Custom Selector Section -->
+				<div>
+					if product.Weighed {
+						<!-- Weight Selector -->
+						<label for={ fmt.Sprintf("weightSelector%s", product.Id) } class="block text-sm font-medium text-gray-700 mb-2">Select Weight (lb):</label>
+						<div class="flex items-center justify-between gap-1 border border-gray-300 rounded-md p-2 bg-white shadow-sm">
+							<button
+								type="button"
+								class="text-xl font-bold p-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-all"
+								data-product-id={ product.Id }
+								data-type="weight"
+								data-action="decrement"
+							>-</button>
+							<input
+								type="text"
+								id={ fmt.Sprintf("weightInput-%s", product.Id) }
+								name={ fmt.Sprintf("weightInput-%s", product.Id) }
+								value="0.1"
+								class="text-center flex-1 font-semibold text-lg focus:outline-none w-1/3"
+								readonly
+							/>
+							<button
+								type="button"
+								class="text-xl font-bold p-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-all"
+								data-product-id={ product.Id }
+								data-type="weight"
+								data-action="increment"
+							>+</button>
+						</div>
+					} else {
+						<!-- Quantity Selector -->
+						<label for={ fmt.Sprintf("quantitySelector%s", product.Id) } class="block text-sm font-medium text-gray-700 mb-2">Select Quantity:</label>
+						<div class="flex items-center justify-between gap-1 border border-gray-300 rounded-md p-2 bg-white shadow-sm">
+							<button
+								type="button"
+								class="text-xl font-bold p-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-all"
+								data-product-id={ product.Id }
+								data-type="quantity"
+								data-action="decrement"
+							>-</button>
+							<input
+								type="text"
+								id={ fmt.Sprintf("quantityInput-%s", product.Id) }
+								name={ fmt.Sprintf("quantityInput-%s", product.Id) }
+								value="1"
+								class="text-center flex-1 font-semibold text-lg focus:outline-none w-1/3"
+								readonly
+							/>
+							<button
+								type="button"
+								class="text-xl font-bold p-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-all"
+								data-product-id={ product.Id }
+								data-type="quantity"
+								data-action="increment"
+							>+</button>
+						</div>
+					}
+				</div>
+				<!-- Add to Bag Button -->
+				<button
+					type="submit"
+					class="tracking-wider bg-accent text-std w-full font-bold text-center p-3 rounded-md shadow-md hover:bg-accent-dark transition-all duration-200"
+				>
+					ADD TO BAG
+				</button>
+			</form>
+		</div>
 	</div>
 }

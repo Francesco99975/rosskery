@@ -31,7 +31,15 @@ func Offline(nonce string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main style=\"display: flex; width: 100%; justify-content: center; align-items: center; text-align: center; height: 100vh;\"><h1 style=\" border-radius: 0.125rem; font-size: 2.5rem; line-height: 2rem;  padding: 0.5rem; margin-top: 0.75rem; margin-bottom: 0.75rem; background-color: red; color: white; text-align: center; width: 66.666667%;\">We are Offline at the moment</h1></main>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<head>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.Stylesheet("/assets/dist/offline.css").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</head><main id=\"offline\"><h1>We are Offline at the moment</h1></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

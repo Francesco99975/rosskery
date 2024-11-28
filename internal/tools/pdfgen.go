@@ -120,7 +120,13 @@ func getTransactions(purchases []models.Purchase) []core.Row {
 	var contentsRow []core.Row
 	contents := make([][]string, 0)
 	for _, purchase := range purchases {
-		contents = append(contents, []string{purchase.Product.Name, fmt.Sprint(purchase.Quantity), helpers.FormatPrice(float64(purchase.Product.Price*purchase.Quantity) / 100)})
+		var rPrice float64
+		if purchase.Product.Weighed {
+			rPrice = float64(purchase.Product.Price * purchase.Quantity / 10)
+		} else {
+			rPrice = float64(purchase.Product.Price * purchase.Quantity)
+		}
+		contents = append(contents, []string{purchase.Product.Name, fmt.Sprint(purchase.Quantity), helpers.FormatPrice(rPrice / 100)})
 	}
 
 	for i, content := range contents {
@@ -149,8 +155,12 @@ func getTransactions(purchases []models.Purchase) []core.Row {
 			Align: align.Right,
 		}),
 		text.NewCol(3, helpers.FormatPrice(float64(helpers.FoldSlice[models.Purchase, func(models.Purchase, int) int, int](purchases, func(prev models.Purchase, cur int) int {
-			return prev.Product.Price * prev.Quantity
-		}, 0)/100)), props.Text{
+			if prev.Product.Weighed {
+				return prev.Product.Price*prev.Quantity/10 + cur
+			} else {
+				return prev.Product.Price*prev.Quantity + cur
+			}
+		}, 0))/100.0), props.Text{
 			Top:   5,
 			Style: fontstyle.Bold,
 			Size:  8,

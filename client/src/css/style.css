@@ -40,6 +40,14 @@ html {
   display: flex;
 }
 
+.htmx-indicator-class {
+  opacity: 0;
+}
+.htmx-request-class .htmx-indicator-class {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
 section img,
 #gallery img {
   -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -80,4 +88,9 @@ section img,
 
 .legal ul {
   @apply flex flex-col w-full md:w-2/3 justify-center items-center py-2;
+}
+
+.pimg {
+  aspect-ratio: 200 / 200;
+  object-fit: cover;
 }

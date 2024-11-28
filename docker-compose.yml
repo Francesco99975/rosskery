@@ -43,6 +43,9 @@ services:
       - traefik.http.services.rosskery.loadbalancer.server.port=8078
       - traefik.http.routers.rosskery.tls=true
       - traefik.http.routers.rosskery.tls.certresolver=le
+      - traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Upgrade=websocket
+      - traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Connection=Upgrade
+      - traefik.http.routers.rosskery.middlewares=websocket-headers
       - traefik.port=80
     networks:
       - rosskerynet
