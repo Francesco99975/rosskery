@@ -140,7 +140,7 @@ func UpdateProduct(cm *models.ConnectionManager) echo.HandlerFunc {
 
 		image := c.FormValue("file")
 		var file *multipart.FileHeader
-		log.Info("image: ", image)
+		log.Debugf("Image: %s", image)
 
 		if !strings.Contains(image, "/assets/") {
 			file, err = c.FormFile("image")

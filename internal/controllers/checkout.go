@@ -7,7 +7,6 @@ import (
 	"github.com/Francesco99975/rosskery/internal/helpers"
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/views"
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	uuid "github.com/satori/go.uuid"
@@ -22,14 +21,7 @@ func Checkout(ctx context.Context) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
 		}
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   86400 * 7,
-			HttpOnly: true,
-			// Secure:   true,
-			// Domain:   "",
-			// SameSite: http.SameSiteDefaultMode,
-		}
+		sess.Options = helpers.GetSessionOptions()
 		sessionID, ok := sess.Values["sessionID"].(string)
 		if !ok || sessionID == "" {
 			sessionID = uuid.NewV4().String()

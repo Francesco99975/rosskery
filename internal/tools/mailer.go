@@ -38,7 +38,7 @@ func SendReceipt(customerEmail string, receipt Receipt, attachment string) error
 		}),
 	)
 
-	log.Infof("Receipt for %s: %v", customerEmail, receipt)
+	log.Debugf("Receipt for %s: %v", customerEmail, receipt)
 
 	jsonReceipt, err := json.Marshal(receipt)
 	if err != nil {
@@ -51,7 +51,7 @@ func SendReceipt(customerEmail string, receipt Receipt, attachment string) error
 		return err
 	}
 
-	log.Infof("Data for receipt: %v", data)
+	log.Debugf("Data for receipt: %v", data)
 
 	file, err := os.Open(attachment)
 	if err != nil {

@@ -15,7 +15,6 @@ import (
 	"github.com/Francesco99975/rosskery/internal/tools"
 	"github.com/Francesco99975/rosskery/views"
 	"github.com/Francesco99975/rosskery/views/components"
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -260,7 +259,7 @@ func NewOrderManager() *OrderManager {
 		for {
 			time.Sleep(10 * time.Minute)
 			if err := om.AutoClean(); err != nil {
-				log.Printf("Error cleaning orders: %v", err)
+				log.Errorf("Error cleaning orders <- %v", err)
 			}
 		}
 	}()
@@ -292,6 +291,7 @@ func (o *OrderManager) Confirm(ctx context.Context, id string, cm *models.Connec
 }
 
 func (o *OrderManager) AutoClean() error {
+	log.Infof("Cleaning dangling orders")
 	o.lock.Lock()
 	defer o.lock.Unlock()
 
@@ -301,6 +301,8 @@ func (o *OrderManager) AutoClean() error {
 			delete(o.realtedCreationDate, id)
 		}
 	}
+
+	log.Infof("Finished Cleaning of dangling orders")
 
 	return nil
 }
@@ -483,31 +485,24 @@ func IssueOrder(ctx context.Context, cm *models.ConnectionManager) echo.HandlerF
 			return c.Blob(http.StatusBadRequest, "text/html; charset=utf-8", html)
 		}
 
-		log.Infof("Payload: %v", payload)
+		log.Debugf("Payload: %v", payload)
 
 		sess, err := session.Get("session", c)
 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Server error on session")
 		}
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   86400 * 7,
-			HttpOnly: true,
-			// Secure:   true,
-			// Domain:   "",
-			// SameSite: http.SameSiteDefaultMode,
-		}
+		sess.Options = helpers.GetSessionOptions()
+
 		sessionID, ok := sess.Values["sessionID"].(string)
 		if !ok || sessionID == "" {
-
+			log.Errorf("SessionID not found in session")
 			return echo.NewHTTPError(http.StatusInternalServerError, "Could not create session")
-
 		}
 
 		if payload.Method == models.CASH {
 			if err := processOrder(ctx, payload, sessionID, cm); err != nil {
-				log.Errorf("Error processing order: %v", err)
+				log.Errorf("Error processing order <- %v", err)
 				html, err := helpers.GeneratePage(components.Errors("Error processing order"))
 				if err != nil {
 					return echo.NewHTTPError(http.StatusBadRequest, "Could not parse page home")

@@ -147,7 +147,7 @@ func GetVisitGraph() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, models.JSONErrorResponse{Code: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching visits data: %v", err), Errors: []string{err.Error()}})
 		}
 
-		log.Infof("Visits data: %v", data)
+		log.Debugf("Visits data: %v", data)
 
 		return c.JSON(http.StatusOK, models.Graph{Data: data})
 	}

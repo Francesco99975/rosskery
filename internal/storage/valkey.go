@@ -12,7 +12,7 @@ var Valkey *valkey.Client
 func ValkeySetup(ctx context.Context) {
 	Valkey = valkey.NewClient(&valkey.Options{
 		Addr:     os.Getenv("VALKEY_ADDR"),
-		Password: "",
+		Password: os.Getenv("VALKEY_PASSWORD"),
 		DB:       0,
 	})
 

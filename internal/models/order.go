@@ -249,7 +249,7 @@ func CreateOrder(customerId string, pickuptime time.Time, items []PurchasedItem,
 		return nil, err
 	}
 
-	log.Infof("Created order %v", createdOrder)
+	log.Debugf("Created order %v", createdOrder)
 
 	return createdOrder, nil
 }

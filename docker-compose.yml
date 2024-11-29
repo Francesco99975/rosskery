@@ -27,7 +27,7 @@ services:
       - "6379:6379"
     env_file:
       - vlp.env
-    command: valkey-server --save 20 1 --loglevel warning
+    command: valkey-server --save 20 1 --loglevel warning --requirepass ${VALKEY_PASSWORD}
     volumes:
       - rskset:/data
 

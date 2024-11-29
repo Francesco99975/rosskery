@@ -247,7 +247,7 @@ func (client *Client) read() {
 
 	for {
 		_, payload, err := client.socket.ReadMessage()
-		log.Infof("payload: %v", string(payload))
+		log.Debugf("payload: %v", string(payload))
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Errorf("error reading message: %v", err)
@@ -261,7 +261,7 @@ func (client *Client) read() {
 			return // Breaking the connection here might be harsh xD
 		}
 
-		log.Infof("event received: %v", request)
+		log.Debugf("event received: %v", request)
 
 		if err := client.manager.routeEvent(request, client); err != nil {
 			log.Errorf("Error handeling Message: ", err)

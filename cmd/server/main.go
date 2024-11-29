@@ -9,7 +9,6 @@ import (
 	"github.com/Francesco99975/rosskery/cmd/boot"
 	"github.com/Francesco99975/rosskery/internal/models"
 	"github.com/Francesco99975/rosskery/internal/storage"
-	"github.com/Francesco99975/rosskery/internal/tools"
 
 	"github.com/stripe/stripe-go/v78"
 )
@@ -29,7 +28,7 @@ func main() {
 
 	models.Setup(os.Getenv("DSN"))
 
-	go tools.GotifyQueue.ProcessQueue()
+	// go tools.GotifyQueue.ProcessQueue()
 
 	storage.ValkeySetup(ctx)
 

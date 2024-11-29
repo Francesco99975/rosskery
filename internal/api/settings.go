@@ -58,12 +58,13 @@ func GetSetting(ctx context.Context) echo.HandlerFunc {
 
 		val, err := storage.Valkey.Get(ctx, name).Bool()
 		if err != nil {
+			log.Errorf("Error while getting setting: %v", err)
 			return c.JSON(http.StatusBadRequest, models.JSONErrorResponse{Code: http.StatusBadRequest, Message: fmt.Sprintf("Error while getting setting: %v", err), Errors: []string{err.Error()}})
 		}
 
 		result := models.Setter{Setting: name, Value: val}
 
-		log.Infof("GetSetting: %v", result)
+		log.Debugf("GetSetting: %v", result)
 
 		return c.JSON(http.StatusOK, result)
 	}

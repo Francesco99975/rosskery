@@ -4,7 +4,6 @@ import "github.com/Francesco99975/rosskery/internal/models"
 
 templ SEO(site models.Site, nonce string, stylesheets []string, scripts []string) {
 	<head hx-swap="outerHTML">
-		<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		<title>{ site.AppName } | { site.Title }</title>
 		<link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon"/>
 		<meta charset="utf-8"/>
@@ -14,7 +13,9 @@ templ SEO(site models.Site, nonce string, stylesheets []string, scripts []string
 		<meta name="keywords" content={ site.Metatags.Keywords }/>
 		<meta name="author" content="Kalairendev"/>
 		<meta name="robots" content="index, follow"/>
+		<link rel="robots" href="/assets/robots.txt"/>
 		<link rel="canonical" href="https://rosskery.dmz.urx.ink"/>
+		// <link rel="sitemap" type="application/xml" title="Sitemap" href="/assets/sitemap.xml"/>
 		<script type="application/ld+json" nonce={ nonce }>
                 {
                     "@context": "http://schema.org",

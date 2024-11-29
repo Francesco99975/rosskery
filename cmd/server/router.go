@@ -27,6 +27,13 @@ func createRouter(ctx context.Context) *echo.Echo {
 	e.Use(middleware.Logger())
 	// e.Use(middleware.Recover())
 	e.Use(middleware.RemoveTrailingSlash())
+	if os.Getenv("GO_ENV") == "development" {
+		e.Logger.SetLevel(log.DEBUG)
+		log.SetLevel(log.DEBUG)
+	} else {
+		e.Logger.SetLevel(log.INFO)
+		log.SetLevel(log.INFO)
+	}
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
 
 	e.Use(middlewares.RateLimiter)
@@ -54,16 +61,6 @@ func createRouter(ctx context.Context) *echo.Echo {
 		CookiePath:     "/",
 		CookieHTTPOnly: true,
 	}))
-
-	if os.Getenv("GO_ENV") == "development" {
-		e.Logger.SetLevel(log.DEBUG)
-		web.Use(middlewares.SecurityHeadersDev())
-	}
-
-	if os.Getenv("GO_ENV") == "production" {
-		e.Logger.SetLevel(log.WARN)
-		web.Use(middlewares.SecurityHeaders())
-	}
 
 	go wsManager.Run()
 
