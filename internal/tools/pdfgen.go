@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/Francesco99975/rosskery/internal/helpers"
@@ -68,9 +69,16 @@ func GenerateInvoice(order *models.Order) (string, error) {
 
 	filename := strings.ReplaceAll(fmt.Sprintf("%s+%s+%s.pdf", order.Id, order.Method, order.Created.Format("2006-01-02 03:04 PM")), " ", "_")
 
+	if os.Getenv("GO_ENV") == "development" {
+		err = document.Save("tmp/invoice_test.pdf")
+		if err != nil {
+			return "", fmt.Errorf("error saving dev invoice file: %w", err)
+		}
+	}
+
 	err = document.Save(filename)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error saving invoice file: %w", err)
 	}
 
 	return filename, err

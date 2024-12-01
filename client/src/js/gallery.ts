@@ -1,5 +1,5 @@
-import PhotoSwipeLightbox from "photoswipe/lightbox";
 import PhotoSwipe from "photoswipe";
+import PhotoSwipeLightbox from "photoswipe/lightbox";
 import "photoswipe/style.css";
 
 function initGallery() {
@@ -13,11 +13,11 @@ function initGallery() {
 
 if (document.readyState !== "loading") {
   initGallery();
+} else {
+  document.addEventListener("DOMContentLoaded", function () {
+    initGallery();
+  });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  initGallery();
-});
 
 document.addEventListener("htmx:afterSettle", function () {
   initGallery();

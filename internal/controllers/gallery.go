@@ -13,6 +13,7 @@ import (
 	"github.com/chai2010/webp"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 func Gallery(ctx context.Context) echo.HandlerFunc {
@@ -22,7 +23,8 @@ func Gallery(ctx context.Context) echo.HandlerFunc {
 
 		err := filepath.Walk("static/gallery", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				return err
+				log.Errorf("Error accessing path %s: %v\n", path, err)
+				return echo.NewHTTPError(http.StatusInternalServerError, "Error accessing path")
 			}
 
 			// Check if it's a regular file (not a directory)
@@ -31,14 +33,16 @@ func Gallery(ctx context.Context) echo.HandlerFunc {
 				path := info.Name()
 				file, err := os.Open(fmt.Sprintf("static/gallery/%s", path))
 				if err != nil {
-					return err
+					log.Errorf("Error opening file %s: %v\n", path, err)
+					return echo.NewHTTPError(http.StatusInternalServerError, "Error opening file")
 				}
 				defer file.Close()
 
 				// Decode the image
 				img, err := webp.Decode(file)
 				if err != nil {
-					return err
+					log.Errorf("Error decoding image %s: %w\n", path, err)
+					return echo.NewHTTPError(http.StatusInternalServerError, "Error decoding image")
 				}
 
 				// Get the dimensions of the image
@@ -64,6 +68,7 @@ func Gallery(ctx context.Context) echo.HandlerFunc {
 		})
 
 		if err != nil {
+			log.Errorf("Error walking through gallery: %v\n", err)
 			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Did not find any images in gallery. Error: %s", err.Error()))
 		}
 

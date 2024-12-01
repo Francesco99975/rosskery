@@ -42,7 +42,7 @@ function initCheckout() {
   });
 
   const form = window.document.getElementById("checkout-form");
-  if (form) {
+  if (form && !(form as any)._hasListener) {
     form.addEventListener("htmx:responseError", function (evt: any) {
       const event = evt as HtmxResposeErrorEvent;
       const errorBox = window.document.getElementById("errors");
@@ -51,6 +51,7 @@ function initCheckout() {
         errorBox.style.display = "block";
       }
     });
+    (form as any)._hasListener = true;
   }
 
   document.addEventListener("htmx:afterOnLoad", function (event) {
@@ -69,12 +70,13 @@ function initCheckout() {
 
   const address = document.getElementById("address");
   const suggestionsBox = document.getElementById("suggestions");
-  if (address && suggestionsBox) {
+  if (address && suggestionsBox && !(address as any)._hasListener) {
     address.addEventListener("keyup", function (event) {
       if (suggestionsBox.style.display === "none") {
         suggestionsBox.style.display = "block";
       }
     });
+    (address as any)._hasListener = true;
   }
 
   document.addEventListener("click", function (event) {
@@ -90,6 +92,6 @@ function initCheckout() {
 
 if (document.readyState !== "loading") {
   initCheckout();
+} else {
+  document.addEventListener("DOMContentLoaded", initCheckout);
 }
-
-document.addEventListener("DOMContentLoaded", initCheckout);

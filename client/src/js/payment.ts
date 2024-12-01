@@ -48,8 +48,8 @@ function initPayment() {
 
 if (document.readyState !== "loading") {
   initPayment();
+} else {
+  document.addEventListener("DOMContentLoaded", function () {
+    initPayment();
+  });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  initPayment();
-});

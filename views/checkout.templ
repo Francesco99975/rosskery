@@ -1,9 +1,11 @@
 package views
 
-import "github.com/Francesco99975/rosskery/views/layouts"
-import "github.com/Francesco99975/rosskery/internal/models"
-import "github.com/Francesco99975/rosskery/internal/helpers"
-import "fmt"
+import (
+	"fmt"
+	"github.com/Francesco99975/rosskery/internal/helpers"
+	"github.com/Francesco99975/rosskery/internal/models"
+	"github.com/Francesco99975/rosskery/views/layouts"
+)
 
 templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData string, csrf string, nonce string) {
 	@layouts.Payment(site, nonce, []string{"assets/dist/checkout.css"}, nil, []string{"/assets/dist/checkout.js"}) {
@@ -16,7 +18,11 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData
 							<div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-primary pb-4">
 								<div>
 									<h3 class="text-lg font-semibold">{ helpers.Capitalize(item.Product.Name) }</h3>
-									<p>Quantity: { fmt.Sprint(item.Quantity) }</p>
+									if !item.Product.Weighed {
+										<p>Quantity: { fmt.Sprint(item.Quantity) }</p>
+									} else {
+										<p>Quantity: { fmt.Sprint(float64(item.Quantity)/10) }lb</p>
+									}
 								</div>
 								<div class="mt-2 md:mt-0 text-right md:text-left">
 									<p class="text-lg">{ helpers.FormatPrice(float64(item.Subtotal) / 100.0) }</p>
@@ -64,28 +70,28 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData
 						<section>
 							<h2 class="text-xl md:text-2xl font-bold mb-4">Payment Method</h2>
 							<div
- 								class="flex space-x-2 border-[3px] border-accent rounded-xl select-none md:w-1/3"
+								class="flex space-x-2 border-[3px] border-accent rounded-xl select-none md:w-1/3"
 							>
 								<label
- 									class="radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer"
+									class="radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer"
 								>
 									<input
- 										type="radio"
- 										name="method"
- 										value="stripe"
- 										class="peer hidden"
- 										checked=""
+										type="radio"
+										name="method"
+										value="stripe"
+										class="peer hidden"
+										checked=""
 									/>
 									<span
- 										class="tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out"
+										class="tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out"
 									>Pay Online</span>
 								</label>
 								<label
- 									class="radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer"
+									class="radio flex flex-grow items-center justify-center rounded-lg p-1 cursor-pointer"
 								>
 									<input type="radio" name="method" value="cash" class="peer hidden"/>
 									<span
- 										class="tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out"
+										class="tracking-widest peer-checked:bg-primary peer-checked:text-std text-primary p-2 rounded-lg transition duration-150 ease-in-out"
 									>Cash at Pickup</span>
 								</label>
 							</div>
@@ -95,7 +101,6 @@ templ Checkout(site models.Site, cartPreview *models.CartPreview, overbookedData
 					</form>
 				</section>
 			</div>
-
 		</main>
 	}
 }

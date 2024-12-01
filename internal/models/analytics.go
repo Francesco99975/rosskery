@@ -196,6 +196,7 @@ func (cm *ConnectionManager) ServeWS(c echo.Context) error {
 
 	client := &Client{
 		id:      uuid.NewV4().String(),
+		ip:      c.Request().Header.Get("X-Forwarded-For"),
 		socket:  socket,
 		egress:  make(chan Event, messageBufferSize),
 		manager: cm,
@@ -215,6 +216,8 @@ func (cm *ConnectionManager) ServeWS(c echo.Context) error {
 
 type Client struct {
 	id string
+
+	ip string
 
 	socket *websocket.Conn
 

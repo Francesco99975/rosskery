@@ -23,13 +23,16 @@ services:
     networks:
       - rosskerynet
     restart: unless-stopped
+    labels:
+      - traefik.enable=false
     ports:
       - "6379:6379"
     env_file:
       - vlp.env
-    command: valkey-server --save 20 1 --loglevel warning --requirepass ${VALKEY_PASSWORD}
+    command: valkey-server --save 20 1 --loglevel warning --aclfile /etc/redis/aclfile
     volumes:
       - rskset:/data
+      - ./default.acl:/etc/redis/aclfile # Mount the ACL file
 
   rosskery:
     depends_on: [valset, rosdb]
@@ -43,6 +46,9 @@ services:
       - traefik.http.services.rosskery.loadbalancer.server.port=8078
       - traefik.http.routers.rosskery.tls=true
       - traefik.http.routers.rosskery.tls.certresolver=le
+      - traefik.http.middlewares.forwardedheaders.headers.customrequestheaders.X-Forwarded-Proto=https
+      - traefik.http.middlewares.forwardedheaders.headers.customrequestheaders.X-Forwarded-For={ip}
+      - traefik.http.routers.rosskery.middlewares=forwardedheaders
       - traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Upgrade=websocket
       - traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Connection=Upgrade
       - traefik.http.routers.rosskery.middlewares=websocket-headers
@@ -52,6 +58,8 @@ services:
       - proxy
     ports:
       - 8078:8078
+    volumes:
+      - rskstatic:/go/bin/static/products
 
 networks:
   proxy:
@@ -68,4 +76,6 @@ volumes:
   rskpglog:
     driver: local
   rskset:
+    driver: local
+  rskstatic:
     driver: local

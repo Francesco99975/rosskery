@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"math"
 
 	"github.com/Francesco99975/rosskery/internal/storage"
 	"github.com/labstack/gommon/log"
@@ -44,7 +45,7 @@ func (c *Cart) Preview(ctx context.Context) (CartPreview, error) {
 
 		if product.Weighed {
 			displayedQuantity = quantity
-			subtotal = product.Price * quantity / 10
+			subtotal = int(math.Round(float64(product.Price * quantity / 10)))
 		} else {
 			displayedQuantity = quantity
 			subtotal = product.Price * quantity

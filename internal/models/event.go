@@ -57,7 +57,7 @@ func SendVisitHandler(event Event, client *Client) error {
 		source = "direct"
 	}
 
-	analizer.addVisit(Visit{Id: client.id, Ip: client.socket.RemoteAddr().String(), Views: 0, Duration: 0, Sauce: source, Agent: client.agent, Date: time.Now()})
+	analizer.addVisit(Visit{Id: client.id, Ip: client.ip, Views: 0, Duration: 0, Sauce: source, Agent: client.agent, Date: time.Now()})
 
 	update := VisitsResponse{
 		Current: len(analizer.visits),

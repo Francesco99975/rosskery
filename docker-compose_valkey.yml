@@ -7,9 +7,12 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    command: valkey-server --save 20 1 --loglevel warning
+    env_file:
+      - vlp.env
+    command: valkey-server --save 20 1 --loglevel warning --aclfile /etc/redis/aclfile
     volumes:
       - rskset:/data
+      - ./default.acl:/etc/redis/aclfile # Mount the ACL file
 volumes:
   rskset:
     driver: local

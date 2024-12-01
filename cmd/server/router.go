@@ -55,11 +55,26 @@ func createRouter(ctx context.Context) *echo.Echo {
 
 	web := e.Group("")
 
+	if os.Getenv("GO_ENV") == "development" {
+		e.Logger.SetLevel(log.DEBUG)
+		web.Use(middlewares.SecurityHeadersDev())
+	}
+
+	if os.Getenv("GO_ENV") == "production" {
+		e.Logger.SetLevel(log.WARN)
+		web.Use(middlewares.SecurityHeaders())
+	}
+
 	web.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
 		CookieName:     "csrf_token",
 		CookiePath:     "/",
 		CookieHTTPOnly: true,
+		Skipper: func(c echo.Context) bool {
+			// Skip CSRF for the /webhook route
+			return c.Path() == "/webhook"
+
+		},
 	}))
 
 	go wsManager.Run()

@@ -31,7 +31,7 @@ func Header(message string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header hx-boost=\"true\" class=\"grid grid-cols-3 gap-2 place-items-center bg-std text-center text-primary w-full h-24 p-4 sticky top-0 right-0 z-20 shadow-md border-b-2 border-b-primary rounded-b-lg\"><nav class=\"md:w-auto\"><!-- Burger menu icon for small screens --><div id=\"burgerMenu\" class=\"burger-menu md:hidden cursor-pointer\"><div id=\"bar1\" class=\"bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0\"></div><div id=\"bar2\" class=\"bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0\"></div><div id=\"bar3\" class=\"bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0\"></div></div><!-- Navigation links for larger screens --><ul id=\"navLinks\" class=\"nav-links md:flex flex-row space-x-4 hidden\"><li><a href=\"/shop\" class=\"text-primary text-lg md:text-xl\">Shop</a></li><li hx-boost=\"false\"><a href=\"/gallery\" class=\"text-primary text-lg md:text-xl\">Gallery</a></li></ul><!-- Navigation links for mobile view --><ul id=\"mobileNavLinks\" class=\"nav-links-mobile md:hidden absolute top-24 left-0 w-full hidden z-30 transition-all ease-in\"><li class=\"bg-std w-full px-4 py-2\"><a href=\"/shop\" class=\"text-primary text-center text-xl md:text-2xl\">Shop</a></li><li class=\"bg-std w-full px-4 py-2\"><a href=\"/gallery\" class=\"text-primary text-center text-xl md:text-2xl\">Gallery</a></li></ul></nav><div class=\"flex items-center p-2\"><h1 class=\"text-3xl\"><a href=\"/\">Rosskery</a></h1></div><button id=\"bagic\" class=\"flex justify-center items-center relative\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header hx-boost=\"false\" class=\"grid grid-cols-3 gap-2 place-items-center bg-std text-center text-primary w-full h-24 p-4 sticky top-0 right-0 z-20 shadow-md border-b-2 border-b-primary rounded-b-lg\"><nav class=\"md:w-auto\"><!-- Burger menu icon for small screens --><div id=\"burgerMenu\" class=\"burger-menu md:hidden cursor-pointer\"><div id=\"bar1\" class=\"bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0\"></div><div id=\"bar2\" class=\"bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0\"></div><div id=\"bar3\" class=\"bar w-6 h-1 bg-primary my-1 rounded transition-transform transform rotate-0\"></div></div><!-- Navigation links for larger screens --><ul id=\"navLinks\" class=\"nav-links md:flex flex-row space-x-4 hidden\"><li><a href=\"/shop\" class=\"text-primary text-lg md:text-xl\">Shop</a></li><li hx-boost=\"false\"><a href=\"/gallery\" class=\"text-primary text-lg md:text-xl\">Gallery</a></li></ul><!-- Navigation links for mobile view --><ul id=\"mobileNavLinks\" class=\"nav-links-mobile md:hidden absolute top-24 left-0 w-full hidden z-30 transition-all ease-in\"><li class=\"bg-std w-full px-4 py-2\"><a href=\"/shop\" class=\"text-primary text-center text-xl md:text-2xl\">Shop</a></li><li class=\"bg-std w-full px-4 py-2\"><a href=\"/gallery\" class=\"text-primary text-center text-xl md:text-2xl\">Gallery</a></li></ul></nav><div class=\"flex items-center p-2\"><h1 class=\"text-3xl\"><a href=\"/\">Rosskery</a></h1></div><button id=\"bagic\" class=\"flex justify-center items-center relative\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +51,7 @@ func Header(message string) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/header.templ`, Line: 39, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/header.templ`, Line: 50, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -69,7 +69,7 @@ func Header(message string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/header.templ`, Line: 44, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/header.templ`, Line: 57, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {

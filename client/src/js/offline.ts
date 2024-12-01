@@ -18,8 +18,8 @@ function recover() {
 
 if (document.readyState !== "loading") {
   recover();
+} else {
+  document.addEventListener("DOMContentLoaded", function () {
+    recover();
+  });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  recover();
-});
