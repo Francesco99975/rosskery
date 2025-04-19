@@ -310,6 +310,11 @@ func (o *OrderManager) AutoClean() error {
 func processOrder(ctx context.Context, payload models.OrderDto, sessionID string, cm *models.ConnectionManager) error {
 	var err error
 
+	err = payload.Validate()
+	if err != nil {
+		return fmt.Errorf("Error validating order: %v", err)
+	}
+
 	var customer *models.DbCustomer
 	exists, err := models.CustomerExists(payload.Email)
 	if err != nil {

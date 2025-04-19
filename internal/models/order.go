@@ -479,7 +479,15 @@ func GetOrdersAmount() (int, error) {
 func GetOutstandingCash() (int, error) {
 	var outstanding int
 
-	statement := `SELECT COALESCE(SUM(products.price * purchases.quantity), 0) AS outstanding
+	statement := `SELECT COALESCE(
+            ROUND(SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+						)),
+            0
+        ) AS outstanding
 								FROM orders
 								JOIN purchases ON orders.id = purchases.orderid
 								JOIN products ON purchases.productid = products.id
@@ -497,9 +505,17 @@ func GetOutstandingCash() (int, error) {
 func GetPendingMoney() (int, error) {
 	var pending int
 
-	statement := `SELECT COALESCE(SUM(total_cost), 0) AS pending
+	statement := `SELECT COALESCE(ROUND(SUM(total_cost)), 0) AS pending
 								FROM (
-										SELECT COALESCE(SUM(p.quantity * pr.price), 0) AS total_cost
+										SELECT COALESCE(
+            SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+            ),
+            0
+        ) AS total_cost
 										FROM orders o
 										JOIN purchases p ON o.id = p.orderid
 										JOIN products pr ON p.productid = pr.id
@@ -519,9 +535,17 @@ func GetPendingMoney() (int, error) {
 func GetGains() (int, error) {
 	var gains int
 
-	statement := `SELECT COALESCE(SUM(total_cost), 0) AS gains
+	statement := `SELECT COALESCE(ROUND(SUM(total_cost), 0)) AS gains
 								FROM (
-										SELECT COALESCE(SUM(p.quantity * pr.price), 0) AS total_cost
+										SELECT COALESCE(
+            SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+            ),
+            0
+        ) AS total_cost
 										FROM orders o
 										JOIN purchases p ON o.id = p.orderid
 										JOIN products pr ON p.productid = pr.id
@@ -540,9 +564,17 @@ func GetGains() (int, error) {
 func GetTotalFromOrders() (int, error) {
 	var total int
 
-	statement := `SELECT COALESCE(SUM(total_cost), 0) AS total
+	statement := `SELECT COALESCE(ROUND(SUM(total_cost), 0)) AS total
 								FROM (
-										SELECT COALESCE(SUM(p.quantity * pr.price), 0) AS total_cost
+										SELECT COALESCE(
+            SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+            ),
+            0
+        ) AS total_cost
 										FROM orders o
 										JOIN purchases p ON o.id = p.orderid
 										JOIN products pr ON p.productid = pr.id
@@ -617,7 +649,15 @@ func GetMonetaryData(timeframe Timeframe, method PaymentMethod, fulfilled bool) 
 		whereStm += " AND fulfilled = true"
 	}
 
-	statement := `SELECT DATE(orders.created) as date, COALESCE(SUM(products.price * purchases.quantity), 0) as count FROM orders JOIN purchases ON orders.id = purchases.orderid JOIN products ON purchases.productid = products.id ` + whereStm + `  GROUP BY orders.created ORDER BY orders.created ASC`
+	statement := `SELECT DATE(orders.created) as date, COALESCE(
+            SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+            ),
+            0
+        ) as count FROM orders JOIN purchases ON orders.id = purchases.orderid JOIN products ON purchases.productid = products.id ` + whereStm + `  GROUP BY orders.created ORDER BY orders.created ASC`
 
 	err = db.Select(&results, statement)
 
@@ -714,7 +754,15 @@ func GetTopOrders() ([]RankedOrder, error) {
 
 	statement := `SELECT
 								o.id AS id,
-								COALESCE(SUM(p.quantity * pr.price), 0) AS cost,
+								COALESCE(
+            ROUND(SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+						)),
+            0
+        ) AS cost,
 								c.fullname AS customer,
 								o.created AS created
 								FROM
@@ -746,7 +794,15 @@ func GetTopGainers() ([]RankedGainer, error) {
 										pr.id AS id,
 										pr.name AS name,
 										cat.name AS category,
-										COALESCE(SUM(p.quantity * pr.price), 0) AS gained
+										COALESCE(
+            ROUND(SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+						)),
+            0
+        ) AS gained
 								FROM
 										products pr
 								JOIN
@@ -802,7 +858,15 @@ func GetFlopGainers() ([]RankedGainer, error) {
 								pr.id AS id,
 								pr.name AS name,
 								cat.name AS category,
-								COALESCE(SUM(p.quantity * pr.price), 0) AS gained
+								COALESCE(
+            ROUND(SUM(
+                CASE
+                    WHEN pr.weighed = true THEN (p.quantity / 10.0) * pr.price
+                    ELSE p.quantity * pr.price
+                END
+						)),
+            0
+        ) AS gained
 								FROM
 										products pr
 								JOIN
